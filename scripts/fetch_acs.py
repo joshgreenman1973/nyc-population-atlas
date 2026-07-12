@@ -64,6 +64,12 @@ GROUP_TABLES = [
     "B27010",  # Health insurance coverage by type by age
     "B09019",  # Household relationship (detailed)
     "B25007",  # Tenure by age of householder
+    "B14002",  # School enrollment by level by type (public/private)
+    "C24010",  # Sex by occupation (employed 16+)
+    "C24030",  # Sex by industry (employed 16+)
+    "B25044",  # Tenure by vehicles available
+    "B25070",  # Gross rent as a percentage of household income
+    "B22010",  # Receipt of Food Stamps/SNAP by household
 ]
 
 # Single-value estimates (can't be summed for medians -> use the city place)

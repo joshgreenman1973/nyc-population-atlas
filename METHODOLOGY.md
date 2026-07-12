@@ -11,6 +11,7 @@ table. Nothing is estimated or invented by hand.
 | All demographic, social, economic and housing breakdowns | U.S. Census Bureau, **American Community Survey (ACS) 2020–2024 5-year estimates**, via `api.census.gov` |
 | Population timeline, 1790–2020 | U.S. Census Bureau **decennial census** counts (modern five-borough area); NYC Department of City Planning historical population tables |
 | Borough land areas (for density) | U.S. Census Bureau / NYC Department of City Planning land-area figures (square miles) |
+| Current unemployment rate | **U.S. Bureau of Labor Statistics**, Local Area Unemployment Statistics (LAUS), New York city, not seasonally adjusted — pulled live from the BLS public API. Used in Fig. 21 alongside the ACS figures because the ACS five-year *average* unemployment rate is inflated by the pandemic window; the BLS number is the latest month available. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
@@ -59,8 +60,11 @@ section of the page:
 - **Population 15 and older** — marital status.
 - **Population 16 and older** — employment status.
 - **Workers 16 and older** — means of transportation to work; travel time.
-- **Households** — household type, household income.
-- **Occupied housing units** — tenure (owner/renter).
+- **Population enrolled in K–12** — public vs private/parochial school (Fig. 18; "public" includes charter schools).
+- **Employed civilians 16 and older** — occupation, industry.
+- **Households** — household type, household income, SNAP receipt.
+- **Occupied housing units** — tenure (owner/renter), vehicles available (car-free).
+- **Renter-occupied units paying cash rent** — rent as a percentage of income (rent burden).
 - **All housing units** — units in structure.
 - **Civilian population 18+** — veteran status.
 - **Civilian noninstitutionalized population** — disability, health-insurance coverage.
@@ -77,7 +81,10 @@ status · `B25003` tenure · `B25024` units in structure · `B19001` household
 income · `B19013` median household income · `B19301` per-capita income ·
 `B25064` median gross rent · `B25077` median home value · `B25010` average
 household size · `B17001` poverty status · `B21001` veteran status · `B18101`
-disability status · `B27010` health-insurance coverage.
+disability status · `B27010` health-insurance coverage · `B14002` school
+enrollment by public/private type · `C24010` occupation · `C24030` industry ·
+`B25044` vehicles available · `B25070` rent as a percentage of income ·
+`B22010` receipt of SNAP/food stamps.
 
 ## Derived measures
 

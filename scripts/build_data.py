@@ -8,6 +8,7 @@ land areas are hardcoded from the sources cited in METHODOLOGY.md.
 """
 import json
 import os
+import urllib.request
 
 HERE = os.path.dirname(__file__)
 RAW = json.load(open(os.path.join(HERE, "..", "data_raw.json")))
@@ -327,6 +328,101 @@ school = [
     {"label": "Graduate / professional school", "value": v("B14007_018E")},
 ]
 
+# ---- occupation (C24010, employed 16+) sum male+female (female offset 36) ----
+occ = lambda m: v(f"C24010_{m:03d}E") + v(f"C24010_{m+36:03d}E")
+occupation = [
+    {"label": "Management, business, science & arts", "value": occ(3)},
+    {"label": "Service", "value": occ(19)},
+    {"label": "Sales & office", "value": occ(27)},
+    {"label": "Natural resources, construction & maintenance", "value": occ(30)},
+    {"label": "Production, transportation & material moving", "value": occ(34)},
+]
+occupation.sort(key=lambda x: -x["value"])
+
+# ---- industry (C24030) sum male+female (female offset 27) ----
+ind = lambda m: v(f"C24030_{m:03d}E") + v(f"C24030_{m+27:03d}E")
+industry = [
+    {"label": "Educational services, health care & social assistance", "value": ind(21)},
+    {"label": "Professional, scientific & management", "value": ind(17)},
+    {"label": "Retail trade", "value": ind(9)},
+    {"label": "Finance, insurance & real estate", "value": ind(14)},
+    {"label": "Arts, entertainment, recreation & food services", "value": ind(24)},
+    {"label": "Transportation, warehousing & utilities", "value": ind(10)},
+    {"label": "Construction", "value": ind(6)},
+    {"label": "Information", "value": ind(13)},
+    {"label": "Other services", "value": ind(27)},
+    {"label": "Public administration", "value": ind(28)},
+    {"label": "Manufacturing", "value": ind(7)},
+    {"label": "Wholesale trade", "value": ind(8)},
+    {"label": "Agriculture & mining", "value": ind(3)},
+]
+industry.sort(key=lambda x: -x["value"])
+
+# ---- school type: public vs private, K-12 (B14002, female offset 24) ----
+bpub = lambda m: v(f"B14002_{m:03d}E") + v(f"B14002_{m+24:03d}E")
+levels = [("Kindergarten", 8, 9), ("Grades 1-4", 11, 12),
+          ("Grades 5-8", 14, 15), ("Grades 9-12", 17, 18)]
+by_level = [{"label": lab, "public": bpub(pu), "private": bpub(pr)} for lab, pu, pr in levels]
+k12_pub = sum(l["public"] for l in by_level)
+k12_priv = sum(l["private"] for l in by_level)
+k12_total = k12_pub + k12_priv
+# all enrolled 3+ (nursery through grad), public share of everything
+all_pub = sum(bpub(m) for m in (5, 8, 11, 14, 17, 20, 23))
+all_priv = sum(bpub(m) for m in (6, 9, 12, 15, 18, 21, 24))
+school_type = {
+    "k12Total": k12_total, "k12Public": k12_pub, "k12Private": k12_priv,
+    "k12PublicShare": round(100 * k12_pub / k12_total, 1),
+    "allEnrolled": all_pub + all_priv, "allPublic": all_pub,
+    "allPublicShare": round(100 * all_pub / (all_pub + all_priv), 1),
+    "byLevel": by_level,
+}
+
+# ---- rent burden (B25070) ----
+rb_computed = v("B25070_001E") - v("B25070_011E")
+burden30 = sum(v(f"B25070_{c:03d}E") for c in (7, 8, 9, 10))
+burden50 = v("B25070_010E")
+rent_burden = {
+    "computed": rb_computed,
+    "rate30": round(100 * burden30 / rb_computed, 1),
+    "rate50": round(100 * burden50 / rb_computed, 1),
+    "count30": burden30, "count50": burden50,
+}
+
+# ---- car-free households (B25044) ----
+no_veh = v("B25044_003E") + v("B25044_010E")
+car_free = {"count": no_veh, "rate": round(100 * no_veh / v("B25044_001E"), 1)}
+
+# ---- SNAP / food assistance (B22010) ----
+snap_hh = v("B22010_002E")
+snap = {"count": snap_hh, "rate": round(100 * snap_hh / v("B22010_001E"), 1)}
+
+# ---- current labor market from the U.S. Bureau of Labor Statistics (LAUS) ----
+def fetch_bls():
+    try:
+        body = json.dumps({"seriesid": [
+            "LAUCT365100000000003",  # unemployment rate
+            "LAUCT365100000000005",  # employment
+            "LAUCT365100000000006",  # labor force
+        ]}).encode()
+        req = urllib.request.Request(
+            "https://api.bls.gov/publicAPI/v1/timeseries/data/",
+            data=body, headers={"Content-Type": "application/json"})
+        r = json.load(urllib.request.urlopen(req, timeout=40))
+        d = {s["seriesID"]: s["data"][0] for s in r["Results"]["series"]}
+        rate = d["LAUCT365100000000003"]
+        return {
+            "unemploymentRate": float(rate["value"]),
+            "period": f'{rate["periodName"]} {rate["year"]}',
+            "employed": int(float(d["LAUCT365100000000005"]["value"])),
+            "laborForce": int(float(d["LAUCT365100000000006"]["value"])),
+            "source": "U.S. Bureau of Labor Statistics, Local Area Unemployment "
+                      "Statistics (New York city, not seasonally adjusted)",
+        }
+    except Exception as e:  # noqa: BLE001
+        print("BLS fetch failed:", e)
+        return None
+bls_labor = fetch_bls()
+
 out = {
     "meta": {
         "source": "U.S. Census Bureau, American Community Survey 2020-2024 5-year estimates",
@@ -363,6 +459,13 @@ out = {
     "veterans": veterans,
     "disability": disability,
     "health": health,
+    "occupation": occupation,
+    "industry": industry,
+    "schoolType": school_type,
+    "rentBurden": rent_burden,
+    "carFree": car_free,
+    "snap": snap,
+    "blsLabor": bls_labor,
 }
 
 # ---- immigration timeline (bar-chart race) ----

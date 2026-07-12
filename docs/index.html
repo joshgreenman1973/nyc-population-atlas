@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 25 ways — age, race, birthplace, a century-long immigration bar-chart race, language, income, work, housing and more. U.S. Census / ACS 2020–2024.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 31 ways — age, race, birthplace, a century-long immigration bar-chart race, language, schools, work and industry, income, rent burden, housing and more. U.S. Census / ACS 2020–2024, BLS, NYC City Planning.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -279,7 +279,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">25 TABULATIONS</div>
+    <div class="cell hide-sm red">31 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -702,6 +702,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Where the city's students are enrolled, from preschool through graduate school.`,
       note:`Universe: population 3 and older enrolled in school.`,
       build:()=>columnChart(d.school,{total:d.school.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Public or private",title:"Public, private, parochial",
+      dek:`Of the <span class="rn">${fmt(d.schoolType.k12Total)}</span> children in kindergarten through 12th grade, <span class="rn">${d.schoolType.k12PublicShare}%</span> attend public school — one of the largest public-school populations in the country.`,
+      note:`Universe: population enrolled in K–12 (ACS table B14002; "public" includes charter schools). The public share runs from about ${Math.round(100*d.schoolType.byLevel[0].public/(d.schoolType.byLevel[0].public+d.schoolType.byLevel[0].private))}% in kindergarten to ${Math.round(100*d.schoolType.byLevel[3].public/(d.schoolType.byLevel[3].public+d.schoolType.byLevel[3].private))}% in grades 9–12. Across all levels including college and graduate school, ${d.schoolType.allPublicShare}% of enrolled students attend public institutions.`,
+      build:()=>splitBar([{label:"Public school",value:d.schoolType.k12Public},{label:"Private or parochial",value:d.schoolType.k12Private}])},
     {topic:"Commute",title:"How they get to work",
       dek:`New York runs on transit: the subway alone carries more commuters than every form of driving combined.`,
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,
@@ -711,11 +715,22 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: workers 16+ who did not work from home.`,
       build:()=>columnChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
     {topic:"Work",title:"In the labor force",
-      dek:`Employment status for everyone 16 and older — the working, the looking, and those out of the labor force.`,
+      dek:`Employment status for New Yorkers 16 and older — the working, the looking, and those out of the labor force.`,
+      note:`ACS universe: population 16+. The ACS 2020–2024 five-year <b>average</b> unemployment rate was ${d.employment.unemploymentRate}%, run high by a window that spans the pandemic; the current rate is from ${d.blsLabor?d.blsLabor.source:"the U.S. Bureau of Labor Statistics"}.`,
       build:()=>statTiles([
-        {value:fmt(d.employment.employed),label:`<b>employed</b> residents 16+`},
+        {value:fmt(d.employment.employed),label:`<b>employed</b> residents 16+ (ACS)`},
         {value:d.employment.laborForceParticipation,unit:"%",label:`<b>labor-force participation</b> — share working or looking`},
-        {value:d.employment.unemploymentRate,unit:"%",label:`<b>unemployment rate</b> (2020–24 average; ${fmt(d.employment.unemployed)} people)`}])},
+        d.blsLabor
+          ? {value:d.blsLabor.unemploymentRate,unit:"%",label:`current <b>unemployment rate</b> — ${d.blsLabor.period} (U.S. Bureau of Labor Statistics)`}
+          : {value:d.employment.unemploymentRate,unit:"%",label:`<b>unemployment rate</b> (2020–24 average)`}])},
+    {topic:"Occupation",title:"What New Yorkers do",
+      dek:`The work itself: every employed New Yorker sorted into five broad occupation groups. Nearly half hold management, business, science or arts jobs.`,
+      note:`Universe: employed civilians 16 and older (${fmt(d.employment.employed)}). Each square is 1% of workers.`,
+      build:()=>waffle(d.occupation,{total:d.occupation.reduce((a,b)=>a+b.value,0),caption:"100 squares = 100% of employed New Yorkers"})},
+    {topic:"Industry",title:"The sectors they work in",
+      dek:`Where those jobs sit. New York's economy leans hard on education and health care — together the single largest employer of the city's own residents, ahead of finance.`,
+      note:`Universe: employed civilians 16 and older, by industry of their job.`,
+      build:()=>barChart(d.industry,{total:d.industry.reduce((a,b)=>a+b.value,0)})},
     {topic:"Income",title:"What households earn",
       dek:`Household income across the full range, from under $10k to $200k-plus. Median household income is <span class="rn">$${fmt(T.medianHHIncome)}</span>.`,
       note:`Universe: households. Per-capita income is $${fmt(T.perCapitaIncome)}.`,
@@ -726,6 +741,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:d.poverty.povertyRate,unit:"%",label:`of people live <b>below the poverty line</b>`},
         {value:d.poverty.childPovertyRate,unit:"%",label:`of <b>children under 18</b> live in poverty`},
         {value:fmt(d.poverty.belowPoverty),label:`people below poverty in total`}])},
+    {topic:"Food assistance",title:"Households on SNAP",
+      dek:`More than one in five households — <span class="rn">${d.snap.rate}%</span> — received Supplemental Nutrition Assistance Program (food-stamp) benefits in the past year.`,
+      note:`Universe: all households (ACS table B22010).`,
+      build:()=>splitBar([{label:"Received SNAP",value:d.snap.count},{label:"Did not",value:T.households-d.snap.count}])},
     {topic:"Housing tenure",title:"Renters' city",
       dek:`Roughly two in three occupied homes are rented — New York is, overwhelmingly, a city of renters.`,
       note:`Universe: occupied housing units. Median gross rent $${fmt(T.medianGrossRent)}; median home value $${fmt(T.medianHomeValue)}.`,
@@ -734,6 +753,17 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`The buildings New Yorkers live in, from detached houses to fifty-plus-unit towers.`,
       note:`Universe: all housing units.`,
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Rent burden",title:"What rent eats",
+      dek:`For renters, the share of income that disappears into housing. A majority are <span class="rn">rent-burdened</span> — paying at least 30% of household income in rent.`,
+      note:`Universe: renter-occupied units paying cash rent (ACS table B25070). "Severely burdened" means paying 50% or more of income on rent.`,
+      build:()=>statTiles([
+        {value:d.rentBurden.rate30,unit:"%",label:`of renters are <b>rent-burdened</b> — 30%+ of income on rent`},
+        {value:d.rentBurden.rate50,unit:"%",label:`are <b>severely burdened</b> — 50%+ of income (${fmt(d.rentBurden.count50)} households)`},
+        {value:`$${fmt(T.medianGrossRent)}`,label:`median gross rent, citywide`}])},
+    {topic:"Cars",title:"A city that doesn't drive",
+      dek:`New York is the rare American city where most households own no car at all — <span class="rn">${d.carFree.rate}%</span> are car-free.`,
+      note:`Universe: occupied housing units (ACS table B25044).`,
+      build:()=>splitBar([{label:"No vehicle",value:d.carFree.count},{label:"One or more vehicles",value:T.households-d.carFree.count}])},
     {topic:"Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,

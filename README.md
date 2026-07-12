@@ -1,12 +1,18 @@
 # NYC Population Atlas
 
 **The people of New York City, counted every which way.** A single scrollable
-page that breaks down the city's ~8.5 million residents 25 different ways — by
+page that breaks down the city's ~8.5 million residents 31 different ways — by
 age and borough, race and Hispanic origin, birthplace and citizenship, language,
-ancestry, household, marital status, education, commute, work, income, poverty,
-housing and more — plus three centuries of population history and an animated
-1900–2023 bar-chart race of foreign-born New Yorkers by country of birth
-(Fig. 10, ported from the nyc-immigration-horserace project).
+ancestry, household, marital status, education, public vs private school,
+commute, work, occupation and industry, income, poverty, SNAP, rent burden,
+car ownership, housing and more — plus three centuries of population history and
+an animated 1900–2023 bar-chart race of foreign-born New Yorkers by country of
+birth (Fig. 10, ported from the nyc-immigration-horserace project).
+
+Almost every figure is Census ACS 2020–2024. Two exceptions: the timeline and
+immigration race use decennial census + NYC City Planning data, and Fig. 21's
+*current* unemployment rate is pulled live from the U.S. Bureau of Labor
+Statistics. See [METHODOLOGY.md](METHODOLOGY.md).
 
 Every number comes straight from the U.S. Census Bureau's American Community
 Survey (2020–2024 5-year estimates) and decennial census. See
