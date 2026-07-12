@@ -12,7 +12,7 @@ table. Nothing is estimated or invented by hand.
 | Population timeline, 1790–2020 | U.S. Census Bureau **decennial census** counts (modern five-borough area); NYC Department of City Planning historical population tables |
 | Borough land areas (for density) | U.S. Census Bureau / NYC Department of City Planning land-area figures (square miles) |
 | Current unemployment rate | **U.S. Bureau of Labor Statistics**, Local Area Unemployment Statistics (LAUS), New York city, not seasonally adjusted — pulled live from the BLS public API. Used in Fig. 21 alongside the ACS figures because the ACS five-year *average* unemployment rate is inflated by the pandemic window; the BLS number is the latest month available. |
-| Person-level car ownership | **Hunter College, Dept. of Urban Policy & Planning**, *"Car Ownership in NYC: By the Numbers"* (2024, from its *Shifting Gears* studio), analyzing ACS 2018–2022. Used in the car figure for the person-level statistic (54% of New Yorkers live in a vehicle-owning household even though only ~45% of households own a car, because car-owning households are larger), vehicles per household, and the citywide vehicle total. Household and borough car-ownership rates in that figure are the atlas's own ACS 2020–2024 tabulation, which matches Hunter's within a point. |
+| Person-level car ownership | **Hunter College, Dept. of Urban Policy & Planning**, *"Car Ownership in NYC: By the Numbers"* (2024, from its *Shifting Gears* studio), analyzing ACS 2018–2022. Used in the car figure for the person-level statistic (54% of New Yorkers live in a vehicle-owning household even though only ~45% of households own a car, because car-owning households are larger), vehicles per household, and the citywide vehicle total. Household and borough car-ownership rates in that figure are the atlas's own ACS 2020–2024 tabulation, which matches Hunter's within a point. The "vehicles per household by household size" bars and the 50-year growth figures (vehicles +45% / population +11% / multi-car households +127%) are quoted from the same Hunter report. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
@@ -62,8 +62,11 @@ section of the page:
 - **Population 16 and older** — employment status.
 - **Workers 16 and older** — means of transportation to work; travel time.
 - **Population enrolled in K–12** — public vs private/parochial school (Fig. 18; "public" includes charter schools).
-- **Employed civilians 16 and older** — occupation, industry.
-- **Households** — household type, household income, SNAP receipt.
+- **Employed civilians 16 and older** — occupation, industry, class of worker.
+- **Population 1 year and older** — geographic mobility (who moved in the past year, and from where; "same county" = same borough in NYC).
+- **Women 15–50** — births in the past 12 months.
+- **Total civilian noninstitutionalized population** — health-insurance type (Fig. 35; "(only)" categories plus a "two or more types" group partition the whole population).
+- **Households** — household type, household income, SNAP receipt, internet subscription and computer presence.
 - **Occupied housing units** — tenure (owner/renter), vehicles available (car-free).
 - **Renter-occupied units paying cash rent** — rent as a percentage of income (rent burden).
 - **All housing units** — units in structure.
@@ -85,7 +88,10 @@ household size · `B17001` poverty status · `B21001` veteran status · `B18101`
 disability status · `B27010` health-insurance coverage · `B14002` school
 enrollment by public/private type · `C24010` occupation · `C24030` industry ·
 `B25044` vehicles available · `B25070` rent as a percentage of income ·
-`B22010` receipt of SNAP/food stamps.
+`B22010` receipt of SNAP/food stamps · `B24080` class of worker · `B07001`
+geographic mobility in the past year · `B28002`/`B28003` internet and computer
+access · `B13002` women 15–50 who gave birth · `B10051` grandparents raising
+grandchildren.
 
 ## Derived measures
 

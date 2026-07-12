@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 31 ways — age, race, birthplace, a century-long immigration bar-chart race, language, schools, work and industry, income, rent burden, housing and more. U.S. Census / ACS 2020–2024, BLS, NYC City Planning.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 36 ways — age, race, birthplace, a century-long immigration bar-chart race, language, schools, work, industry and occupation, income, rent burden, cars, health coverage, digital access, mobility and more. U.S. Census / ACS 2020–2024, BLS, NYC City Planning, Hunter College.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -279,7 +279,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">31 TABULATIONS</div>
+    <div class="cell hide-sm red">36 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -361,6 +361,17 @@ function barChart(items,{total,unit="",showCount=true}={}){
       <div class="dval">${valHtml}</div>`;
     el.appendChild(row);
   });
+  return el;
+}
+function valueBars(items,{max,fmt}){
+  const mx=max||Math.max(...items.map(d=>d.value));
+  const el=document.createElement("div"); el.className="dtable";
+  items.forEach((d,i)=>{const w=mx?(d.value/mx*100):0;
+    const row=document.createElement("div"); row.className="drow";
+    row.innerHTML=`<div class="dlabel">${d.label}</div>
+      <div class="dbarcell"><div class="dbar ${i===0?'top':''}" data-w="${w}"></div></div>
+      <div class="dval">${fmt?fmt(d.value):d.value}</div>`;
+    el.appendChild(row);});
   return el;
 }
 function splitBar(parts,{total}={}){
@@ -447,7 +458,7 @@ function pyramid(bands,maleTot,femaleTot){
   wrap.append(leg,box); return wrap;
 }
 
-const CATC=["#e4002b","#0f0f0e","#0a2fff","#6f6f6a","#b5b5af","#3a3a37"];
+const CATC=["#e4002b","#0f0f0e","#0a2fff","#6f6f6a","#c98a00","#1c6e69","#b5b5af","#3a3a37"];
 function allocate(items,total,cells){
   const raw=items.map(it=>({it, exact: total?it.value/total*cells:0}));
   const base=raw.map(r=>Math.floor(r.exact)); let used=base.reduce((a,b)=>a+b,0);
@@ -697,6 +708,13 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Marital status of everyone 15 and older. "Never married" is the single largest category — a young, churning city.`,
       note:`Universe: population 15 and older. Male and female counts combined.`,
       build:()=>barChart(d.marital,{total:d.marital.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Births & caregiving",title:"New arrivals, and who raises them",
+      dek:`In a single year, some <span class="rn">${fmt(d.family.births)}</span> New York women gave birth — and tens of thousands of grandparents are the ones raising the city's children.`,
+      note:`Universe: women 15–50 (ACS table B13002) and grandparents living with their own grandchildren under 18 (B10051). "Responsible" grandparents are those who report being responsible for most of the grandchild's basic needs.`,
+      build:()=>statTiles([
+        {value:d.family.birthRatePer1000,label:`<b>births per 1,000 women</b> aged 15–50 in the past year (${fmt(d.family.births)} births)`},
+        {value:d.family.unmarriedShare,unit:"%",label:`of those births were to <b>unmarried</b> mothers`},
+        {value:fmt(d.family.grandparentsResponsible),label:`<b>grandparents</b> are responsible for raising their own grandchildren`}])},
     {topic:"Education",title:"How far in school",
       dek:`Educational attainment for adults 25 and older. <span class="rn">${d.eduSummary.bachelorsPlusPct}%</span> hold at least a bachelor's degree.`,
       note:`Universe: population 25 and older (${fmt(d.eduSummary.pop25plus)}).`,
@@ -734,6 +752,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Where those jobs sit. New York's economy leans hard on education and health care — together the single largest employer of the city's own residents, ahead of finance.`,
       note:`Universe: employed civilians 16 and older, by industry of their job.`,
       build:()=>barChart(d.industry,{total:d.industry.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Who they work for",title:"Company, government, or themselves",
+      dek:`Most New Yorkers work for a private company, but the city also leans on a big public payroll and an unusually large nonprofit sector.`,
+      note:`Universe: employed civilians 16 and older (ACS table B24080). "Self-employed" combines incorporated and unincorporated own-business workers.`,
+      build:()=>dotPlot(d.classWorker,{total:d.classWorker.reduce((a,b)=>a+b.value,0)})},
     {topic:"Income",title:"What households earn",
       dek:`Household income across the full range, from under $10k to $200k-plus. Median household income is <span class="rn">$${fmt(T.medianHHIncome)}</span>.`,
       note:`Universe: households. Per-capita income is $${fmt(T.perCapitaIncome)}.`,
@@ -758,26 +780,52 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
     {topic:"Rent burden",title:"What rent eats",
       dek:`For renters, the share of income that disappears into housing. A majority are <span class="rn">rent-burdened</span> — paying at least 30% of household income in rent.`,
-      note:`Universe: renter-occupied units paying cash rent (ACS table B25070). "Severely burdened" means paying 50% or more of income on rent.`,
-      build:()=>statTiles([
-        {value:d.rentBurden.rate30,unit:"%",label:`of renters are <b>rent-burdened</b> — 30%+ of income on rent`},
-        {value:d.rentBurden.rate50,unit:"%",label:`are <b>severely burdened</b> — 50%+ of income (${fmt(d.rentBurden.count50)} households)`},
-        {value:`$${fmt(T.medianGrossRent)}`,label:`median gross rent, citywide`}])},
+      note:`Universe: renter-occupied units paying cash rent (ACS table B25070). "Severely burdened" means paying 50% or more of income on rent. The burden is heaviest in the Bronx and lightest in Manhattan — where higher incomes offset higher rents.`,
+      build:()=>{
+        const wrap=document.createElement("div");
+        wrap.appendChild(statTiles([
+          {value:d.rentBurden.rate30,unit:"%",label:`of renters are <b>rent-burdened</b> — 30%+ of income on rent`},
+          {value:d.rentBurden.rate50,unit:"%",label:`are <b>severely burdened</b> — 50%+ of income (${fmt(d.rentBurden.count50)} households)`},
+          {value:`$${fmt(T.medianGrossRent)}`,label:`median gross rent, citywide`}]));
+        const cap=document.createElement("div"); cap.className="wcap"; cap.style.margin="26px 0 0";
+        cap.textContent="Share of renters paying 30%+ of income on rent, by borough";
+        wrap.append(cap, barChart(d.rentBurden.byBorough,{total:100,showCount:false}));
+        return wrap;
+      }},
     {topic:"Cars",title:"Who actually has a car",
       dek:`New York is called a city without cars — and by <b>households</b> it is: <span class="rn">${d.carFree.rate}%</span> own no vehicle. But car-owning homes are larger, so a slim majority of <b>people</b> — <span class="rn">${d.carFree.hunter.peopleWithVehiclePct}%</span> — actually live in a household with a car. Which measure you use flips the story.`,
       note:`Household figures and the borough breakdown: ACS 2020–2024, table B25044 (occupied units). The person-level share, vehicles per household and the ~2 million-vehicle citywide total come from ${d.carFree.hunter.source}, which analyzed ACS ${d.carFree.hunter.dataYears} data; its borough ownership rates match this atlas's ACS tabulation within a point.`,
       build:()=>{
-        const wrap=document.createElement("div");
+        const h=d.carFree.hunter, wrap=document.createElement("div");
         wrap.appendChild(statTiles([
           {value:d.carFree.rate,unit:"%",label:`of <b>households</b> are car-free — a minority own a vehicle (ACS)`},
-          {value:d.carFree.hunter.peopleWithVehiclePct,unit:"%",label:`of <b>New Yorkers</b> live in a household <b>with</b> a car (Hunter College)`},
-          {value:d.carFree.hunter.vehiclesPerHH,label:`vehicles per household — about a third of the U.S. average (Hunter College)`}
+          {value:h.peopleWithVehiclePct,unit:"%",label:`of <b>New Yorkers</b> live in a household <b>with</b> a car (Hunter College)`},
+          {value:h.vehiclesPerHH,label:`vehicles per household — about a third of the U.S. average (Hunter College)`},
+          {value:`+${h.growth50yr.multiCarGrowthPct}`,unit:"%",label:`growth in <b>multi-car households</b> over 50 years — driving all of the city's vehicle growth (Hunter College)`}
         ]));
-        const cap=document.createElement("div"); cap.className="wcap"; cap.style.margin="26px 0 0";
-        cap.textContent="Share of households owning a vehicle, by borough";
-        wrap.append(cap, barChart(d.carFree.byBorough,{total:100,showCount:false}));
+        const c1=document.createElement("div"); c1.className="wcap"; c1.style.margin="26px 0 0";
+        c1.textContent="Share of households owning a vehicle, by borough";
+        wrap.append(c1, barChart(d.carFree.byBorough,{total:100,showCount:false}));
+        const c2=document.createElement("div"); c2.className="wcap"; c2.style.margin="26px 0 0";
+        c2.textContent="Vehicles per household, by household size (Hunter College)";
+        wrap.append(c2, valueBars(h.byHouseholdSize,{max:Math.max(...h.byHouseholdSize.map(x=>x.value)),fmt:x=>x.toFixed(2)}));
         return wrap;
       }},
+    {topic:"Moving",title:"Who moved last year",
+      dek:`New York can feel transient, but in a given year only about <span class="rn">${d.mobility.movedPct}%</span> of residents moved at all — and most who did stayed within their own borough.`,
+      note:`Universe: population 1 year and older (ACS table B07001). "Within the same borough" is the census's same-county category; New York's counties are its boroughs.`,
+      build:()=>barChart(d.mobility.byOrigin,{total:d.mobility.movers})},
+    {topic:"Digital access",title:"Online, or not",
+      dek:`Most New Yorkers are connected — but a digital divide persists: hundreds of thousands of households have no internet subscription at home.`,
+      note:`Universe: households (ACS tables B28002, B28003). "Broadband" is a broadband subscription of any type; "no internet" means no subscription of any kind.`,
+      build:()=>statTiles([
+        {value:d.digital.broadbandPct,unit:"%",label:`of households have a <b>broadband</b> subscription`},
+        {value:d.digital.noInternetPct,unit:"%",label:`have <b>no internet</b> subscription at home — ${fmt(d.digital.noInternetCount)} households`},
+        {value:d.digital.noComputerPct,unit:"%",label:`have <b>no computer</b> at all`}])},
+    {topic:"Health coverage",title:"How they're insured",
+      dek:`How New Yorkers get their health coverage — from employers, from public programs like Medicaid and Medicare, or not at all.`,
+      note:`Universe: total civilian noninstitutionalized population (ACS table B27010). "(only)" means a single type of coverage; people with more than one are grouped in "two or more types," so these categories sum to the whole population.`,
+      build:()=>stackedBar(d.coverage,{total:d.coverageTotal})},
     {topic:"Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,

@@ -70,6 +70,12 @@ GROUP_TABLES = [
     "B25044",  # Tenure by vehicles available
     "B25070",  # Gross rent as a percentage of household income
     "B22010",  # Receipt of Food Stamps/SNAP by household
+    "B24080",  # Sex by class of worker (employed 16+)
+    "B07001",  # Geographical mobility in the past year by age
+    "B28002",  # Presence and types of internet subscriptions
+    "B28003",  # Presence of a computer and type of internet subscription
+    "B13002",  # Women 15-50 who had a birth in the past 12 months
+    "B10051",  # Grandparents living with own grandchildren under 18
 ]
 
 # Single-value estimates (can't be summed for medians -> use the city place)

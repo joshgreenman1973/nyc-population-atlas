@@ -448,6 +448,100 @@ def fetch_bls():
         return None
 bls_labor = fetch_bls()
 
+# ---- class of worker (B24080, female offset 10) ----
+cow = lambda m: v(f"B24080_{m:03d}E") + v(f"B24080_{m+10:03d}E")
+class_worker = [
+    {"label": "Private-company employee", "value": cow(4)},
+    {"label": "Government (local, state, federal)", "value": cow(7) + cow(8) + cow(9)},
+    {"label": "Self-employed", "value": cow(5) + cow(10)},
+    {"label": "Nonprofit employee", "value": cow(6)},
+    {"label": "Unpaid family worker", "value": cow(11)},
+]
+class_worker.sort(key=lambda x: -x["value"])
+
+# ---- health-insurance type (B27010): mutually-exclusive partition ----
+sm = lambda codes: sum(v(f"B27010_{c:03d}E") for c in codes)
+coverage = [
+    {"label": "Employer-based (only)", "value": sm([4, 20, 36, 53])},
+    {"label": "Medicaid / public (only)", "value": sm([7, 23, 39])},
+    {"label": "Medicare (only)", "value": sm([6, 22, 38, 55])},
+    {"label": "Two or more types", "value": sm([10, 26, 42, 58])},
+    {"label": "Direct-purchase (only)", "value": sm([5, 21, 37, 54])},
+    {"label": "Military — TRICARE/VA (only)", "value": sm([8, 9, 24, 25, 40, 41, 56, 57])},
+    {"label": "Uninsured", "value": sm([17, 33, 50, 66])},
+]
+coverage.sort(key=lambda x: -x["value"])
+cov_total = v("B27010_001E")
+
+# ---- geographic mobility in the past year (B07001) ----
+mob_total = v("B07001_001E")
+mob_cats = []
+for code, meta in sorted(LABELS["B07001"].items()):
+    if not code.endswith("E") or code == "NAME":
+        continue
+    parts = meta["label"].replace("Estimate!!", "").split("!!")
+    if len(parts) == 2 and parts[0].rstrip(":") == "Total" and parts[1].endswith(":"):
+        mob_cats.append((parts[1].rstrip(":"), v(code)))
+same_house = next((val for name, val in mob_cats if name.startswith("Same house")), 0)
+movers = mob_total - same_house
+MOB_LABEL = {
+    "Moved within same county": "Within the same borough",
+    "Moved from different county within same state": "From elsewhere in New York State",
+    "Moved from different state": "From another U.S. state",
+    "Moved from abroad": "From abroad",
+}
+movers_by_origin = [
+    {"label": MOB_LABEL.get(name, name), "value": val}
+    for name, val in mob_cats if not name.startswith("Same house")
+]
+mobility = {
+    "movedPct": round(100 * movers / mob_total, 1),
+    "movers": movers, "sameHouse": same_house,
+    "byOrigin": movers_by_origin,
+}
+
+# ---- digital access (B28002 internet, B28003 computer) ----
+digital = {
+    "broadbandPct": round(100 * v("B28002_004E") / v("B28002_001E"), 1),
+    "noInternetPct": round(100 * (v("B28002_001E") - v("B28002_002E")) / v("B28002_001E"), 1),
+    "noComputerPct": round(100 * v("B28003_006E") / v("B28003_001E"), 1),
+    "noInternetCount": v("B28002_001E") - v("B28002_002E"),
+}
+
+# ---- fertility (B13002) + grandparents (B10051) ----
+women_15_50 = v("B13002_001E")
+births = v("B13002_002E")
+births_unmarried = v("B13002_007E")
+family = {
+    "births": births,
+    "birthRatePer1000": round(1000 * births / women_15_50),
+    "unmarriedShare": round(100 * births_unmarried / births, 1) if births else None,
+    "grandparentsResponsible": v("B10051_002E"),
+}
+
+# ---- rent burden by borough (B25070) ----
+rent_by_boro = []
+for name, bd in BORO.items():
+    comp = (bd.get("B25070_001E") or 0) - (bd.get("B25070_011E") or 0)
+    b30 = sum((bd.get(f"B25070_{c:03d}E") or 0) for c in (7, 8, 9, 10))
+    if comp:
+        rent_by_boro.append({"label": name, "value": round(100 * b30 / comp, 1)})
+rent_by_boro.sort(key=lambda x: -x["value"])
+rent_burden["byBorough"] = rent_by_boro
+
+# Hunter College extras for the car figure (verbatim from their 2024 report)
+car_free["hunter"]["byHouseholdSize"] = [
+    {"label": "1 person", "value": 0.22},
+    {"label": "2 people", "value": 0.68},
+    {"label": "3 people", "value": 0.89},
+    {"label": "4 people", "value": 1.11},
+    {"label": "5+ people", "value": 1.21},
+]
+car_free["hunter"]["growth50yr"] = {
+    "vehicleGrowthPct": 45, "vehicleGrowthCount": 640000,
+    "popGrowthPct": 11, "multiCarGrowthPct": 127,
+}
+
 out = {
     "meta": {
         "source": "U.S. Census Bureau, American Community Survey 2020-2024 5-year estimates",
@@ -491,6 +585,12 @@ out = {
     "carFree": car_free,
     "snap": snap,
     "blsLabor": bls_labor,
+    "classWorker": class_worker,
+    "coverage": coverage,
+    "coverageTotal": cov_total,
+    "mobility": mobility,
+    "digital": digital,
+    "family": family,
 }
 
 # ---- immigration timeline (bar-chart race) ----
