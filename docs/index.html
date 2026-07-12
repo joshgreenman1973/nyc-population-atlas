@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 49 ways — a neighborhood map, a four-year population ledger, day vs night population, age, race, birthplace, undocumented estimates, an immigration bar-chart race, baby names, same-sex couples, group quarters, inequality, building age, crowding, even the city's licensed dogs. U.S. Census / ACS 2020–2024, BLS, NYC Open Data, MOIA, Hunter College.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 52 ways — a neighborhood map with a 2010–2020 growth layer, a population ledger, day vs night population, county-to-county migration flows, life expectancy by neighborhood, school-system rosters, age, race, birthplace, undocumented estimates, an immigration bar-chart race, baby names, inequality, even the city's licensed dogs. U.S. Census / ACS, BLS, DOHMH, DOE, City Planning, NYC Open Data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -298,7 +298,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">49 TABULATIONS</div>
+    <div class="cell hide-sm red">52 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -677,6 +677,8 @@ function horserace(tl){
 }
 
 const MAP_RAMP=["#fbe9e2","#f6bfa8","#ee8f70","#e35a41","#c00d2b","#7a0a1e"];
+const DIV_RAMP=["#c00d2b","#ee8f70","#f8d9cd","#cdd6f6","#6a86e8","#0a2fff"];
+const DIV_BINS=[-10,-3,0,3,10];
 const MAP_LAYERS=[
   {key:"pop_density",label:"Density",title:"People per square mile",fmt:v=>fmt(v)+"/mi²"},
   {key:"median_hh_income",label:"Income",title:"Median household income",fmt:v=>"$"+fmt(v)},
@@ -685,6 +687,7 @@ const MAP_LAYERS=[
   {key:"pct_black_nh",label:"Black",title:"Share Black (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
   {key:"pct_asian_nh",label:"Asian",title:"Share Asian (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
   {key:"pct_white_nh",label:"White",title:"Share White (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
+  {key:"pop_ch_pct",label:"Growth 10–20",title:"Population change, 2010 → 2020",fmt:v=>(v>0?"+":"")+v+"%",diverging:true},
   {key:"median_age",label:"Age",title:"Median age",fmt:v=>v.toFixed(1)},
   {key:"pct_poverty",label:"Poverty",title:"Share below the poverty line",fmt:v=>Math.round(v)+"%"},
   {key:"median_gross_rent",label:"Rent",title:"Median gross rent",fmt:v=>"$"+fmt(v)},
@@ -714,7 +717,7 @@ function buildMap(wrap,gj){
     const vals=gj.features.map(f=>f.properties[key]).filter(v=>v!=null).sort((a,b)=>a-b);
     return [1,2,3,4,5].map(i=>vals[Math.floor(vals.length*i/6)]);
   }
-  const colorOf=(v,bk)=> v==null ? "#e4e4de" : MAP_RAMP[bk.filter(b=>v>=b).length];
+  const colorOf=(v,bk,ramp)=> v==null ? "#e4e4de" : ramp[bk.filter(b=>v>=b).length];
 
   const ctrl=document.createElement("div"); ctrl.className="map-ctrl";
   MAP_LAYERS.forEach(L=>{const b=document.createElement("button"); b.textContent=L.label; b.className=L===layer?"on":"";
@@ -737,11 +740,13 @@ function buildMap(wrap,gj){
     const v=f.properties[layer.key];
     info.innerHTML=`<span class="nn">${f.properties.nta}, ${f.properties.borough}</span><span><span class="vv">${v==null?"n/a":layer.fmt(v)}</span> · ${layer.title.toLowerCase()}</span>`;}
   function defaultInfo(){info.innerHTML=`<span class="nn">${gj.features.length} neighborhoods</span><span>${layer.title} — hover to explore</span>`;}
-  function paint(){const bk=bins(layer.key);
+  function paint(){
+    const bk=layer.diverging?DIV_BINS:bins(layer.key);
+    const ramp=layer.diverging?DIV_RAMP:MAP_RAMP;
     const vals=gj.features.map(f=>f.properties[layer.key]).filter(v=>v!=null).sort((a,b)=>a-b);
-    paths.forEach(o=>o.p.setAttribute("fill",colorOf(o.f.properties[layer.key],bk)));
+    paths.forEach(o=>o.p.setAttribute("fill",colorOf(o.f.properties[layer.key],bk,ramp)));
     legend.innerHTML=`<span class="lab">${layer.fmt(vals[0])}</span>`+
-      MAP_RAMP.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")+
+      ramp.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")+
       `<span class="lab" style="margin-left:8px">${layer.fmt(vals[vals.length-1])}</span>`;
     defaultInfo();}
   paint();
@@ -786,7 +791,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       build:()=>boroughTable(d.boroughs)},
     {topic:"The map",title:"Where they live",
       dek:`Zoom past the boroughs to the city's <span class="rn">262 neighborhoods</span>. The same population, mapped — switch layers to see where density, money, immigrants and each group concentrate. Hover any neighborhood.`,
-      note:`Neighborhood Tabulation Areas (2020), shaded by American Community Survey 2020–2024 estimates. Colors use six equal-count (quantile) bins, so each shade holds a similar number of neighborhoods. Small differences between adjacent shades are within the survey's margin of error.`,
+      note:`Neighborhood Tabulation Areas (2020), shaded by American Community Survey 2020–2024 estimates. Colors use six equal-count (quantile) bins, so each shade holds a similar number of neighborhoods; small differences between adjacent shades are within the survey's margin of error. The <b>Growth 10–20</b> layer is different: decennial census counts on 2020 boundaries (NYC Dept. of City Planning crosswalk), red for loss and blue for gain; neighborhoods under 1,000 residents in 2010 are left grey because tiny bases make percentages meaningless.`,
       build:()=>choroplethMap()},
     {topic:"Day & night",title:"The city by day",
       dek:`The census counts people where they sleep — but every weekday the city redistributes itself. Manhattan swells <span class="rn">${d.daytime.boroughs[0].changePct>0?"+":""}${d.daytime.boroughs[0].changePct}%</span> with commuters while every other borough empties out, and the city as a whole holds about <span class="rn">${fmt(d.daytime.cityDay)}</span> people by day.`,
@@ -908,6 +913,13 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Of the <span class="rn">${fmt(d.schoolType.k12Total)}</span> children in kindergarten through 12th grade, <span class="rn">${d.schoolType.k12PublicShare}%</span> attend public school — one of the largest public-school populations in the country.`,
       note:`Universe: population enrolled in K–12 (ACS table B14002; "public" includes charter schools). The public share runs from about ${Math.round(100*d.schoolType.byLevel[0].public/(d.schoolType.byLevel[0].public+d.schoolType.byLevel[0].private))}% in kindergarten to ${Math.round(100*d.schoolType.byLevel[3].public/(d.schoolType.byLevel[3].public+d.schoolType.byLevel[3].private))}% in grades 9–12. Across all levels including college and graduate school, ${d.schoolType.allPublicShare}% of enrolled students attend public institutions.`,
       build:()=>splitBar([{label:"Public school",value:d.schoolType.k12Public},{label:"Private or parochial",value:d.schoolType.k12Private}])},
+    {topic:"The roster",title:"The school system's own count",
+      dek:`Two ways to count the same students. The census asks parents; the school system counts its rosters. The Department of Education's headcount: <span class="rn">${fmt(d.extras.doe.k12)}</span> K–12 students in ${d.extras.doe.year}, across ${fmt(d.extras.doe.schools)} schools.`,
+      note:`NYC Dept. of Education Demographic Snapshot (NYC Open Data), ${d.extras.doe.year}, summed across all ${fmt(d.extras.doe.schools)} schools including ${d.extras.doe.charterSchools} charters. The ACS public-school figure (Fig. 18) is a survey estimate averaged over 2020–2024 — a window that starts at higher pre-decline enrollment — and counts wherever parents say their child attends; rosters and surveys will never match exactly.`,
+      build:()=>statTiles([
+        {value:fmt(d.extras.doe.k12),label:`K–12 students on <b>DOE rosters</b> (${d.extras.doe.year}, incl. charters)`},
+        {value:fmt(d.schoolType.k12Public),label:`K–12 public-school students per the <b>census survey</b> (ACS 2020–24 avg.)`},
+        {value:fmt(d.extras.doe.prek),label:`more children in <b>3-K and pre-K</b> on DOE rosters`}])},
     {topic:"Commute",title:"How they get to work",
       dek:`New York runs on transit: the subway alone carries more commuters than every form of driving combined.`,
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,
@@ -1015,6 +1027,17 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`New York can feel transient, but in a given year only about <span class="rn">${d.mobility.movedPct}%</span> of residents moved at all — and most who did stayed within their own borough.`,
       note:`Universe: population 1 year and older (ACS table B07001). "Within the same borough" is the census's same-county category; New York's counties are its boroughs.`,
       build:()=>barChart(d.mobility.byOrigin,{total:d.mobility.movers})},
+    {topic:"The exchange",title:"Where movers come from, where they go",
+      dek:`County by county, the city's biggest exchanges are its own suburbs: Nassau, Westchester and Suffolk send the most people in — and take even more out. The long-distance traffic runs to Los Angeles and beyond.`,
+      note:`U.S. Census Bureau Migration Flows, ${d.extras.flows.vintage} — the most recent vintage published at county-to-county detail. Annual average movers; flows for the five boroughs are summed, and moves between boroughs are excluded. Top 10 partner counties each way.`,
+      build:()=>{
+        const wrap=document.createElement("div"); wrap.style.display="grid"; wrap.style.gap="0 28px";
+        wrap.style.gridTemplateColumns="repeat(auto-fit,minmax(280px,1fr))";
+        const a=document.createElement("div"), b=document.createElement("div");
+        a.innerHTML=`<div class="wcap">Moved in from</div>`; b.innerHTML=`<div class="wcap">Moved out to</div>`;
+        a.appendChild(barChart(d.extras.flows.topIn,{unit:""})); b.appendChild(barChart(d.extras.flows.topOut,{unit:""}));
+        wrap.append(a,b); return wrap;
+      }},
     {topic:"Digital access",title:"Online, or not",
       dek:`Most New Yorkers are connected — but a digital divide persists: hundreds of thousands of households have no internet subscription at home.`,
       note:`Universe: households (ACS tables B28002, B28003). "Broadband" is a broadband subscription of any type; "no internet" means no subscription of any kind.`,
@@ -1026,6 +1049,23 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`How New Yorkers get their health coverage — from employers, from public programs like Medicaid and Medicare, or not at all.`,
       note:`Universe: total civilian noninstitutionalized population (ACS table B27010). "(only)" means a single type of coverage; people with more than one are grouped in "two or more types," so these categories sum to the whole population.`,
       build:()=>stackedBar(d.coverage,{total:d.coverageTotal})},
+    {topic:"Longevity",title:"How long a life",
+      dek:`A New Yorker born in 2023 can expect <span class="rn">${d.extras.life.citywide2023}</span> years — but geography bends that number by more than fifteen: from ${d.extras.life.highestCD[0].value} in ${d.extras.life.highestCD[0].label} to ${d.extras.life.lowestCD[0].value} in ${d.extras.life.lowestCD[0].label}.`,
+      note:`${d.extras.life.source}. Citywide life expectancy at birth, 2023; community-district figures are ${d.extras.life.cdPeriod} averages (based on NYC resident deaths, including those occurring outside the city). The five highest and five lowest of the 59 community districts.`,
+      build:()=>{
+        const wrap=document.createElement("div");
+        wrap.appendChild(statTiles([
+          {value:d.extras.life.citywide2023,label:`years — <b>citywide</b> life expectancy at birth, 2023`},
+          {value:d.extras.life.highestCD[0].value,label:`in <b>${d.extras.life.highestCD[0].label}</b>, the city's highest`},
+          {value:d.extras.life.lowestCD[0].value,label:`in <b>${d.extras.life.lowestCD[0].label}</b>, the city's lowest — a ${(d.extras.life.highestCD[0].value-d.extras.life.lowestCD[0].value).toFixed(1)}-year gap`}]));
+        const grid=document.createElement("div"); grid.style.cssText="display:grid;gap:0 28px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:26px";
+        const a=document.createElement("div"), b=document.createElement("div");
+        a.innerHTML=`<div class="wcap">Longest lives (community districts)</div>`;
+        b.innerHTML=`<div class="wcap">Shortest lives</div>`;
+        a.appendChild(valueBars(d.extras.life.highestCD,{max:92,fmt:x=>x.toFixed(1)+" yrs"}));
+        b.appendChild(valueBars(d.extras.life.lowestCD,{max:92,fmt:x=>x.toFixed(1)+" yrs"}));
+        grid.append(a,b); wrap.appendChild(grid); return wrap;
+      }},
     {topic:"Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,

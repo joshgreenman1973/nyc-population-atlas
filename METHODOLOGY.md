@@ -19,6 +19,10 @@ table. Nothing is estimated or invented by hand.
 | Same-sex couples & group-quarters types | **2020 Decennial Census, DHC** tables `PCT15` (coupled households by type) and `P18` (group quarters by major type) — full enumerations. Used because the equivalent ACS tables aren't published at city level; the current group-quarters *total* is ACS `B26001`. |
 | Baby names | **NYC Dept. of Health & Mental Hygiene**, civil birth registration ("Popular Baby Names," NYC Open Data dataset `25th-nujf`), latest published year. The city suppresses names given fewer than 10 times per ethnicity group; counts here sum a name across groups. |
 | Licensed dogs | **NYC DOHMH Dog Licensing dataset** (NYC Open Data `nu7n-tubp`), licenses *issued* in the latest complete year (the dataset repeats rows across annual extracts, so raw row counts would double-count renewals). Licensed dogs only. |
+| Migration flows | **U.S. Census Bureau Migration Flows** (ACS 2016–2020) — the most recent vintage published at county-to-county detail. Annual-average movers; the five boroughs' flows are summed and moves between boroughs are excluded. |
+| Neighborhood growth (map layer) | **NYC Dept. of City Planning**, *2010 and 2020 Decennial Census on 2020 NTA boundaries* (`nyc_decennialcensusdata_2010_2020_change.xlsx`) — DCP's own boundary crosswalk. Neighborhoods under 1,000 residents in 2010 are excluded from the percent-change layer. |
+| School rosters | **NYC Dept. of Education Demographic Snapshot** (NYC Open Data `c7ru-d68s`), 2021-22, summed across all schools including charters. Presented next to the ACS public-school estimate as roster-vs-survey; the two measure differently and won't match exactly. |
+| Life expectancy | **NYC DOHMH, Summary of Vital Statistics 2023** (report PDF, parsed programmatically). Citywide life expectancy at birth for 2023; community-district figures are 2014–2023 averages based on NYC resident deaths including out-of-city occurrences. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at

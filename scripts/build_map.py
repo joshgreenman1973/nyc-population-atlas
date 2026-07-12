@@ -35,10 +35,41 @@ def round_coords(obj, nd=5):
     return obj
 
 
+DCP_CHANGE_URL = ("https://www.nyc.gov/assets/planning/download/office/"
+                  "planning-level/nyc-population/census2020/"
+                  "nyc_decennialcensusdata_2010_2020_change.xlsx")
+
+
+def load_change():
+    """NYC Dept. of City Planning decennial change workbook: 2010 and 2020
+    census population on 2020 NTA boundaries (DCP's own crosswalk).
+    Returns {nta_code: (pop_2010, pop_2020, pct_change)}."""
+    import io
+    import urllib.request
+    import openpyxl
+    req = urllib.request.Request(DCP_CHANGE_URL, headers={"User-Agent": "Mozilla/5.0"})
+    raw = urllib.request.urlopen(req, timeout=120).read()
+    wb = openpyxl.load_workbook(io.BytesIO(raw), read_only=True)
+    ws = wb["2010, 2020, and Change"]
+    out = {}
+    for r in ws.iter_rows(values_only=True):
+        if r[1] == "NTA2020":
+            code = str(r[3])
+            try:
+                p10, p20 = int(r[8]), int(r[38])
+            except (TypeError, ValueError):
+                continue
+            pct = round(100 * (p20 - p10) / p10, 1) if p10 >= 1000 else None
+            out[code] = (p10, p20, pct)
+    return out
+
+
 def main():
     geom = json.load(open(GEOM))
     data = json.load(open(DATA))
     by_code = {f["properties"]["geoid"]: f["properties"] for f in data["features"]}
+    change = load_change()
+    print(f"DCP change table: {len(change)} NTAs")
 
     out_features = []
     for f in geom["features"]:
@@ -50,6 +81,8 @@ def main():
         for k in FIELDS:
             v = src.get(k)
             props[k] = round(v, 1) if isinstance(v, float) else v
+        ch = change.get(code)
+        props["pop_ch_pct"] = ch[2] if ch else None
         out_features.append({
             "type": "Feature",
             "properties": props,
