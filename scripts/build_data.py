@@ -365,6 +365,22 @@ out = {
     "health": health,
 }
 
+# ---- immigration timeline (bar-chart race) ----
+# Curated historical country-of-birth series, 1900-2023, ported from the
+# nyc-immigration-horserace project. Sources: 1910 & 1930 decennial census;
+# NYC Dept. of City Planning "Newest New Yorkers" 2013 & 2026; ACS B05006.
+tl_path = os.path.join(HERE, "immigration_timeline.json")
+if os.path.exists(tl_path):
+    tl = json.load(open(tl_path))
+    out["immigrationTimeline"] = {
+        "years": tl["years"],
+        "countries": tl["countries"],
+        "note": tl["meta"].get("note", ""),
+        "caution": tl["meta"].get("caution", []),
+    }
+    print(f"immigration timeline: {len(tl['countries'])} countries, "
+          f"{tl['years'][0]}-{tl['years'][-1]}")
+
 out_path = os.path.join(HERE, "..", "docs", "data.json")
 with open(out_path, "w") as f:
     json.dump(out, f, separators=(",", ":"))

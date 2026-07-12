@@ -26,6 +26,26 @@ home, ancestry, and so on.
   Kings/Brooklyn (36047), New York/Manhattan (36061), Queens (36081),
   Richmond/Staten Island (36085).
 
+## The immigration bar-chart race (Fig. 10)
+
+Figure 10 animates foreign-born New Yorkers by country of birth, **1900–2023**,
+using a curated historical series (`scripts/immigration_timeline.json`, ported
+from the standalone *nyc-immigration-horserace* project). Sources by period:
+
+- **1900, 1910** — 1910 U.S. Census, Vol. 1, Table 29 (New York city).
+- **1920, 1930** — 1930 U.S. Census, Vol. II, Table 9 (New York, N.Y.).
+- **1970–2000, 2011** — NYC Dept. of City Planning, *The Newest New Yorkers 2013*, Table 2-3.
+- **2020** — Census ACS 2022 5-year, table B05006 (China = mainland + Hong Kong + Taiwan, to match City Planning's definition).
+- **2023** — NYC Dept. of City Planning, *The Newest New Yorkers 2026*, Ch. 2; groups outside that report's top 20 from the 2023 ACS 1-year B05006 summed across the five boroughs.
+- **1940, 1950, 1960** — not filled from primary sources; those cells are blank and the bars interpolate across them (shown as declining, not flat).
+
+**The "fade."** Once a group's wave peaks and stops being replenished, its bar
+both shrinks and dims. The dimming is a **visual device**, not a measured
+statistic: the census counts immigrants by country of birth but cannot count
+their U.S.-born children and grandchildren, who become simply "American" in the
+birthplace tables. The fade marks a wave receding into later generations; it is
+not a generation count.
+
 ## Universes (denominators)
 
 Percentages are taken against the correct base for each table, noted on each

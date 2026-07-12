@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 24 ways — age, race, birthplace, language, income, work, housing and more. U.S. Census / ACS 2020–2024.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 25 ways — age, race, birthplace, a century-long immigration bar-chart race, language, income, work, housing and more. U.S. Census / ACS 2020–2024.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -231,6 +231,30 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   .dotp .track{grid-column:1/3; border-left:none; height:22px; margin-top:2px}
 }
 
+/* ---------- bar-chart race ---------- */
+.race{border-top:2px solid var(--ink); padding-top:16px}
+.race-head{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-bottom:2px}
+.race-clock{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+.race-year{font-family:"Big Shoulders Display",sans-serif; font-weight:800; font-size:clamp(52px,9vw,88px); color:var(--red); line-height:.78; font-variant-numeric:tabular-nums}
+.race-era{font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--ink-2)}
+.race-ctrl{display:flex; margin-left:auto; border:2px solid var(--ink); align-items:stretch; height:38px}
+.race-ctrl button{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:.03em; padding:0 13px; background:var(--paper); border:none; border-right:2px solid var(--ink); cursor:pointer; color:var(--ink); display:flex; align-items:center}
+.race-ctrl button:last-child{border-right:none}
+.race-ctrl button.on{background:var(--ink); color:var(--paper)}
+.race-scrub{display:block; width:100%; margin:14px 0 8px; -webkit-appearance:none; appearance:none; height:2px; background:var(--ink); cursor:pointer}
+.race-scrub::-webkit-slider-thumb{-webkit-appearance:none; width:12px; height:20px; background:var(--red); border:0; cursor:pointer}
+.race-scrub::-moz-range-thumb{width:12px; height:20px; background:var(--red); border:0; border-radius:0}
+.race-legend{display:flex; flex-wrap:wrap; gap:8px 18px; font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-2); margin-bottom:12px}
+.race-legend .sw{display:inline-block; width:10px; height:10px; margin-right:7px; vertical-align:baseline}
+.race-track{position:relative; border-top:1px solid var(--grid)}
+.lane{position:absolute; left:0; right:0; display:grid; grid-template-columns:1fr 116px; align-items:center; gap:12px; opacity:0; will-change:transform}
+.lane-barwrap{position:relative; height:26px}
+.lane-fill{position:absolute; left:0; top:0; bottom:0; width:0; background:var(--c); min-width:2px}
+.lane-name{position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:"IBM Plex Mono",monospace; font-size:11.5px; text-transform:uppercase; white-space:nowrap; color:#fff; z-index:2; pointer-events:none}
+.lane.out .lane-name{left:calc(var(--w) + 8px); color:var(--ink)}
+.lane-val{font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink)}
+@media(max-width:520px){.lane{grid-template-columns:1fr 78px} .lane-val{font-size:10.5px} .lane-name{font-size:10.5px}}
+
 /* ---------- methodology ---------- */
 .method{background:var(--ink); color:#e9e9e5; border-top:2px solid var(--ink)}
 .method .wrap{padding:52px var(--gut) 40px}
@@ -255,7 +279,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">24 TABULATIONS</div>
+    <div class="cell hide-sm red">25 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -507,11 +531,86 @@ function dotPlot(items,{total,unit=""}={}){
   return el;
 }
 
-function makeSection(cfg){
-  const s=document.createElement("section"); s.className="sec reveal"; s.id="s"+cfg.no;
+const RREG={europe:{l:"Europe",h:225},latin:{l:"Latin America",h:350},caribbean:{l:"Caribbean",h:318},asia:{l:"Asia",h:42},other:{l:"Other",h:0}};
+function horserace(tl){
+  const DISPLAY=12, ROW=38, MAXBAR=90, EASE=0.18, SECDEC=1.7, HOLD=2.6;
+  const YEARS=tl.years, SPAN=YEARS.length-1;
+  const C=tl.countries.map(c=>({...c, counts:c.counts.slice()}));
+  // fill internal gaps (1940-60 etc.) so mid-series nulls decline smoothly
+  C.forEach(c=>{const a=c.counts; let f=a.findIndex(x=>x!=null),L=-1;
+    for(let i=a.length-1;i>=0;i--){if(a[i]!=null){L=i;break;}} if(f<0)return;
+    for(let i=f+1;i<L;i++){if(a[i]==null){let p=i-1;while(a[p]==null)p--;let n=i+1;while(a[n]==null)n++;a[i]=a[p]+(a[n]-a[p])*((i-p)/(n-p));}}});
+  const rc={};
+  C.forEach(c=>{const reg=RREG[c.region]||RREG.other; const i=rc[c.region]=(rc[c.region]||0); rc[c.region]++;
+    const L=44+((i*9)%22), S=c.region==="other"?8:82; c._col=`hsl(${reg.h} ${S}% ${L}%)`;
+    c._peak=Math.max(...c.counts.filter(x=>x!=null)); c._pi=c.counts.indexOf(c._peak);});
+
+  const wrap=document.createElement("div"); wrap.className="race";
+  const head=document.createElement("div"); head.className="race-head";
+  head.innerHTML=`<div class="race-clock"><div class="race-year tnum">1900</div><div class="race-era">the open door</div></div>
+    <div class="race-ctrl"><button class="rc-play">❚❚ Pause</button><button class="rc-restart">↻</button><button class="rc-speed" data-s="1">1×</button><button class="rc-speed" data-s="2">2×</button></div>`;
+  const scrub=document.createElement("input"); scrub.type="range"; scrub.min=0; scrub.max=1000; scrub.value=0; scrub.className="race-scrub";
+  const legend=document.createElement("div"); legend.className="race-legend";
+  const used=["europe","latin","caribbean","asia","other"].filter(r=>C.some(c=>c.region===r));
+  legend.innerHTML=used.map(r=>`<span><span class="sw" style="background:hsl(${RREG[r].h} ${r==="other"?8:82}% 50%)"></span>${RREG[r].l}</span>`).join("");
+  const track=document.createElement("div"); track.className="race-track"; track.style.height=(DISPLAY*ROW)+"px";
+  wrap.append(head,scrub,legend,track);
+
+  const rows=new Map();
+  C.forEach((c,idx)=>{const el=document.createElement("div"); el.className="lane"; el.style.setProperty("--c",c._col);
+    el.innerHTML=`<div class="lane-barwrap"><div class="lane-fill"></div><span class="lane-name">${c.name}</span></div><div class="lane-val">—</div>`;
+    el.style.transform=`translate3d(0,${idx*ROW}px,0)`;
+    track.appendChild(el);
+    rows.set(c.id,{c,el,fill:el.querySelector(".lane-fill"),val:el.querySelector(".lane-val"),y:idx*ROW,vis:false});});
+
+  const yearEl=head.querySelector(".race-year"), eraEl=head.querySelector(".race-era"), playBtn=head.querySelector(".rc-play");
+  const eraLabel=y=> y<1924?"the open door": y<1965?"the closed door": y<2000?"the new wave":"the global city";
+  function lerp(arr,fi){const i=Math.floor(fi),fr=fi-i,a=arr[i],b=(i+1<arr.length)?arr[i+1]:a;
+    if(a==null&&b==null)return null; if(a==null)return b*fr; if(b==null)return a*(1-fr); return a+(b-a)*fr;}
+  function fadeOf(c,fi,v){ if(fi<=c._pi)return 1; if(c._pi>=YEARS.length-2)return 1; return Math.max(0.18,v/c._peak); }
+  function yearAt(fi){const i=Math.floor(fi),fr=fi-i,a=YEARS[i],b=(i+1<YEARS.length)?YEARS[i+1]:a; return Math.round(a+(b-a)*fr);}
+
+  function render(fi,snap){
+    const scored=[];
+    for(const c of C){const v=lerp(c.counts,fi); if(v!=null&&v>0)scored.push([c,v]);}
+    scored.sort((p,q)=>q[1]-p[1]);
+    const top=scored.slice(0,DISPLAY), maxV=top.length?top[0][1]:1, vis=new Set();
+    top.forEach(([c,v],r)=>{vis.add(c.id); const row=rows.get(c.id), ty=r*ROW;
+      if(snap)row.y=ty; else{row.y+=(ty-row.y)*EASE; if(Math.abs(ty-row.y)<0.5)row.y=ty;}
+      const w=Math.max(0.8,(v/maxV)*MAXBAR), fade=fadeOf(c,fi,v);
+      row.el.style.transform=`translate3d(0,${row.y}px,0)`; row.el.style.setProperty("--w",w+"%"); row.el.style.opacity="1";
+      row.fill.style.width=w+"%"; row.fill.style.filter=`saturate(${0.25+0.75*fade}) opacity(${0.42+0.58*fade})`;
+      row.el.classList.toggle("out",w<24); row.val.textContent=fmt(Math.round(v)); row.vis=true;});
+    for(const[id,row]of rows){if(!vis.has(id)&&row.vis){row.el.style.opacity="0"; row.vis=false;}}
+  }
+  function paint(snap){const fi=Math.min(T,SPAN); yearEl.textContent=yearAt(fi); eraEl.textContent=eraLabel(yearAt(fi)); render(fi,snap);}
+
+  let T=0, playing=true, speed=1, lastT=0, hold=0, onScreen=false, started=false;
+  function setPlay(p){playing=p; playBtn.textContent=p?"❚❚ Pause":"▶ Play";}
+  function frame(now){const dt=lastT?(now-lastT)/1000:0; lastT=now;
+    if(playing&&onScreen){
+      if(T<SPAN){T+=(dt/SECDEC)*speed; if(T>=SPAN){T=SPAN; hold=HOLD;}}
+      else if(hold>0){hold-=dt; if(hold<=0)T=0;}
+      scrub.value=Math.round((T/SPAN)*1000);
+    }
+    paint(); requestAnimationFrame(frame);}
+  playBtn.onclick=()=>setPlay(!playing);
+  head.querySelector(".rc-restart").onclick=()=>{T=0; hold=0; setPlay(true);};
+  head.querySelectorAll(".rc-speed").forEach(b=>b.onclick=()=>{speed=+b.dataset.s;
+    head.querySelectorAll(".rc-speed").forEach(x=>x.classList.toggle("on",x===b));});
+  head.querySelector('.rc-speed[data-s="1"]').classList.add("on");
+  scrub.addEventListener("input",()=>{T=(scrub.value/1000)*SPAN; hold=0; setPlay(false); paint(true);});
+  new IntersectionObserver(es=>es.forEach(e=>{onScreen=e.isIntersecting;
+    if(onScreen&&!started){started=true; requestAnimationFrame(frame);}}),{threshold:.15}).observe(track);
+  paint(true);
+  return wrap;
+}
+
+function makeSection(cfg,no){
+  const s=document.createElement("section"); s.className="sec reveal"; s.id="s"+no;
   const w=document.createElement("div"); w.className="wrap";
   const head=document.createElement("div"); head.className="sec-head";
-  head.innerHTML=`<div class="sec-no tnum">${cfg.no}</div><div><span class="sec-tag">${cfg.tag}</span><h2>${cfg.title}</h2><p class="dek">${cfg.dek}</p></div>`;
+  head.innerHTML=`<div class="sec-no tnum">${no}</div><div><span class="sec-tag">Fig. ${no} — ${cfg.topic}</span><h2>${cfg.title}</h2><p class="dek">${cfg.dek}</p></div>`;
   w.appendChild(head);
   w.appendChild(cfg.build());
   if(cfg.note){const n=document.createElement("p"); n.className="note"; n.innerHTML=cfg.note; w.appendChild(n);}
@@ -528,19 +627,19 @@ fetch("data.json").then(r=>r.json()).then(d=>{
   document.getElementById("hfHh").textContent=fmt(T.households);
 
   const sections=[
-    {no:"01",tag:"Fig. 01 — Over time",title:"Three centuries of growth",
+    {topic:"Over time",title:"Three centuries of growth",
       dek:`From a colonial town of <b>33,131</b> in 1790 to <span class="rn">${fmt(d.history.at(-1).population)}</span> in 2020 — the modern city's population at every decennial census.`,
       note:`The <b>1890→1900</b> leap is the 1898 consolidation of Brooklyn, Queens, the Bronx and Staten Island into Greater New York — an administrative merger, not organic growth. Decennial census counts.`,
       build:()=>lineChart(d.history)},
-    {no:"02",tag:"Fig. 02 — By borough",title:"Five cities in one",
+    {topic:"By borough",title:"Five cities in one",
       dek:`Brooklyn holds the most people; Manhattan packs them tightest; Queens sprawls widest. Population, density and median household income, per borough.`,
       note:`Density is people per square mile of land area. Manhattan's ~${fmt(d.boroughs.find(b=>b.name==="Manhattan").density)}/mi² is roughly ${(d.boroughs.find(b=>b.name==="Manhattan").density/d.boroughs.find(b=>b.name==="Staten Island").density).toFixed(0)}× Staten Island's.`,
       build:()=>boroughTable(d.boroughs)},
-    {no:"03",tag:"Fig. 03 — Age & sex",title:"The shape of a generation",
+    {topic:"Age & sex",title:"The shape of a generation",
       dek:`A population pyramid: every five-year band, split by sex. Median age is <span class="rn">${T.medianAge}</span>. Women outnumber men, a gap that widens with age.`,
       note:`Universe: total population. Bands combine the Census Bureau's finer age categories into standard five-year groups.`,
       build:()=>pyramid(d.sexAge.bands,d.sexAge.totalMale,d.sexAge.totalFemale)},
-    {no:"04",tag:"Fig. 04 — Race",title:"No majority",
+    {topic:"Race",title:"No majority",
       dek:`New York has no racial majority. Shown the way the census asks race — a question kept separate from Hispanic origin (Fig. 05).`,
       note:`Universe: total population. Each square is 1% of the city. Hispanic/Latino is counted as its own group here; the rest are non-Hispanic single-race and multiracial responses.`,
       build:()=>waffle([
@@ -550,88 +649,92 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {label:"Asian (non-Hisp.)",value:d.race.find(r=>r.label==="Asian").value},
         {label:"Other / multiracial",value:d.race.filter(r=>!["White","Black","Asian"].includes(r.label)).reduce((a,b)=>a+b.value,0)}
       ],{total:T.population,caption:"100 squares = 100% of New Yorkers · 1 square ≈ 85,000 people"})},
-    {no:"05",tag:"Fig. 05 — Hispanic origin",title:"Hispanic or not",
+    {topic:"Hispanic origin",title:"Hispanic or not",
       dek:`Hispanic or Latino origin is asked separately from race. Nearly <span class="rn">${pctS(d.hispanic[0].value,T.population)}</span> of the city is Hispanic, of any race.`,
       build:()=>splitBar(d.hispanic,{total:T.population})},
-    {no:"06",tag:"Fig. 06 — Nativity",title:"Born here, or somewhere else",
+    {topic:"Nativity",title:"Born here, or somewhere else",
       dek:`More than a third of New Yorkers — <span class="rn">${d.nativity.foreignBornPct}%</span> — were born outside the United States, among the highest shares of any large American city.`,
       note:`Universe: total population. "Native" includes people born in the U.S., Puerto Rico and territories, and those born abroad to American parents.`,
       build:()=>splitBar([{label:"Foreign-born",value:d.nativity.foreignBorn},{label:"Native-born",value:d.nativity.native}])},
-    {no:"07",tag:"Fig. 07 — Citizenship",title:"The paths to belonging",
+    {topic:"Citizenship",title:"The paths to belonging",
       dek:`How New Yorkers relate to citizenship — born citizens, naturalized citizens, and non-citizens.`,
       note:`Universe: total population. One bar, five statuses, summing to the whole city.`,
       build:()=>stackedBar(d.citizenship,{total:T.population})},
-    {no:"08",tag:"Fig. 08 — Region of birth",title:"Which part of the world",
+    {topic:"Region of birth",title:"Which part of the world",
       dek:`Among the foreign-born, the world region they came from. The Americas and Asia dominate New York's immigration.`,
       note:`Universe: foreign-born population (${fmt(d.nativity.foreignBorn)}).`,
       build:()=>barChart(d.regionOfBirth,{total:d.nativity.foreignBorn})},
-    {no:"09",tag:"Fig. 09 — Country of birth",title:"Twenty homelands",
+    {topic:"Country of birth",title:"Twenty homelands",
       dek:`The twenty countries that sent the most New Yorkers, by number of residents born there.`,
       note:`Universe: foreign-born population. Top 20 of dozens of countries the census tracks; each rectangle is sized by the number of residents born there.`,
       build:()=>treemap(d.countryOfBirth,{total:d.nativity.foreignBorn})},
-    {no:"10",tag:"Fig. 10 — Ancestry",title:"Where families trace back",
+    {topic:"A century of arrivals",title:"Where New York came from",
+      dek:`The same question, run across time. Foreign-born New Yorkers by country of birth, <span class="rn">1900 to 2023</span> — press play and watch the great European waves crest and recede as Latin America, the Caribbean and Asia rise.`,
+      note:`${d.immigrationTimeline.note}<br><br><b>The fade:</b> once a wave stops being replenished, its bar dims — a visual proxy for immigrants aging into US-born children and grandchildren the census can no longer count by country of birth. It is a device, not a measured generation count.`,
+      build:()=>horserace(d.immigrationTimeline)},
+    {topic:"Ancestry",title:"Where families trace back",
       dek:`Self-reported ancestry — how New Yorkers describe their roots, born abroad or not. Top twenty.`,
       note:`Universe: total population reporting an ancestry (optional question, so the sum is less than the city total). Percentages are of total population.`,
       build:()=>dotPlot(d.ancestry,{total:T.population})},
-    {no:"11",tag:"Fig. 11 — Language",title:"What's spoken at home",
+    {topic:"Language",title:"What's spoken at home",
       dek:`Nearly half of New Yorkers speak a language other than English at home. The languages, ranked.`,
       note:`Universe: population 5 and older. Groups follow the census's collapsed language categories.`,
       build:()=>barChart(d.language,{total:d.english.total5plus})},
-    {no:"12",tag:"Fig. 12 — English proficiency",title:"Getting by in English",
+    {topic:"English proficiency",title:"Getting by in English",
       dek:`Of everyone 5 and older, how many speak English less than "very well" — the census's measure of limited English proficiency.`,
       build:()=>statTiles([
         {value:pctS(d.english.onlyEnglish,d.english.total5plus),label:`speak <b>only English</b> at home`},
         {value:d.english.limitedEnglishPct,unit:"%",label:`speak English <b>less than "very well"</b> — about ${fmt(d.english.limitedEnglish)} people`},
         {value:fmt(d.english.total5plus),label:`total population age 5+ measured`}])},
-    {no:"13",tag:"Fig. 13 — Households",title:"Who lives together",
+    {topic:"Households",title:"Who lives together",
       dek:`The city's <span class="rn">${fmt(T.households)}</span> households, by type — from married couples to people living alone.`,
       note:`Universe: households. Each square is 1% of the city's ${fmt(T.households)} households. Average household size is ${T.avgHHSize}.`,
       build:()=>waffle(d.household,{total:T.households,caption:"100 squares = 100% of households"})},
-    {no:"14",tag:"Fig. 14 — Marital status",title:"Married, single, in between",
+    {topic:"Marital status",title:"Married, single, in between",
       dek:`Marital status of everyone 15 and older. "Never married" is the single largest category — a young, churning city.`,
       note:`Universe: population 15 and older. Male and female counts combined.`,
       build:()=>barChart(d.marital,{total:d.marital.reduce((a,b)=>a+b.value,0)})},
-    {no:"15",tag:"Fig. 15 — Education",title:"How far in school",
+    {topic:"Education",title:"How far in school",
       dek:`Educational attainment for adults 25 and older. <span class="rn">${d.eduSummary.bachelorsPlusPct}%</span> hold at least a bachelor's degree.`,
       note:`Universe: population 25 and older (${fmt(d.eduSummary.pop25plus)}).`,
       build:()=>columnChart(d.education,{total:d.eduSummary.pop25plus})},
-    {no:"16",tag:"Fig. 16 — School",title:"Everyone in class",
+    {topic:"School",title:"Everyone in class",
       dek:`Where the city's students are enrolled, from preschool through graduate school.`,
       note:`Universe: population 3 and older enrolled in school.`,
       build:()=>columnChart(d.school,{total:d.school.reduce((a,b)=>a+b.value,0)})},
-    {no:"17",tag:"Fig. 17 — Commute",title:"How they get to work",
+    {topic:"Commute",title:"How they get to work",
       dek:`New York runs on transit: the subway alone carries more commuters than every form of driving combined.`,
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,
       build:()=>barChart(d.commute,{total:d.commute.reduce((a,b)=>a+b.value,0)})},
-    {no:"18",tag:"Fig. 18 — Travel time",title:"Minutes each way",
+    {topic:"Travel time",title:"Minutes each way",
       dek:`How long the commute actually takes — one-way travel time to work, in minutes.`,
       note:`Universe: workers 16+ who did not work from home.`,
       build:()=>columnChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
-    {no:"19",tag:"Fig. 19 — Work",title:"In the labor force",
+    {topic:"Work",title:"In the labor force",
       dek:`Employment status for everyone 16 and older — the working, the looking, and those out of the labor force.`,
       build:()=>statTiles([
         {value:fmt(d.employment.employed),label:`<b>employed</b> residents 16+`},
         {value:d.employment.laborForceParticipation,unit:"%",label:`<b>labor-force participation</b> — share working or looking`},
         {value:d.employment.unemploymentRate,unit:"%",label:`<b>unemployment rate</b> (2020–24 average; ${fmt(d.employment.unemployed)} people)`}])},
-    {no:"20",tag:"Fig. 20 — Income",title:"What households earn",
+    {topic:"Income",title:"What households earn",
       dek:`Household income across the full range, from under $10k to $200k-plus. Median household income is <span class="rn">$${fmt(T.medianHHIncome)}</span>.`,
       note:`Universe: households. Per-capita income is $${fmt(T.perCapitaIncome)}.`,
       build:()=>columnChart(d.income,{total:T.households})},
-    {no:"21",tag:"Fig. 21 — Poverty",title:"Below the line",
+    {topic:"Poverty",title:"Below the line",
       dek:`The official poverty measure — how many New Yorkers, and how many of the city's children, live below the federal poverty threshold.`,
       build:()=>statTiles([
         {value:d.poverty.povertyRate,unit:"%",label:`of people live <b>below the poverty line</b>`},
         {value:d.poverty.childPovertyRate,unit:"%",label:`of <b>children under 18</b> live in poverty`},
         {value:fmt(d.poverty.belowPoverty),label:`people below poverty in total`}])},
-    {no:"22",tag:"Fig. 22 — Housing tenure",title:"Renters' city",
+    {topic:"Housing tenure",title:"Renters' city",
       dek:`Roughly two in three occupied homes are rented — New York is, overwhelmingly, a city of renters.`,
       note:`Universe: occupied housing units. Median gross rent $${fmt(T.medianGrossRent)}; median home value $${fmt(T.medianHomeValue)}.`,
       build:()=>splitBar([{label:"Renter-occupied",value:d.tenure.find(t=>/Renter/.test(t.label)).value},{label:"Owner-occupied",value:d.tenure.find(t=>/Owner/.test(t.label)).value}])},
-    {no:"23",tag:"Fig. 23 — Type of home",title:"What they live in",
+    {topic:"Type of home",title:"What they live in",
       dek:`The buildings New Yorkers live in, from detached houses to fifty-plus-unit towers.`,
       note:`Universe: all housing units.`,
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
-    {no:"24",tag:"Fig. 24 — Three more cuts",title:"Veterans, disability, coverage",
+    {topic:"Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,
       build:()=>statTiles([
@@ -642,9 +745,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
 
   const host=document.getElementById("sections"); host.innerHTML="";
   const rail=document.getElementById("rail");
-  sections.forEach(cfg=>{
-    host.appendChild(makeSection(cfg));
-    const a=document.createElement("a"); a.href="#s"+cfg.no; a.textContent=cfg.no+" · "+cfg.title; a.dataset.no=cfg.no; rail.appendChild(a);
+  sections.forEach((cfg,i)=>{
+    const no=String(i+1).padStart(2,"0");
+    host.appendChild(makeSection(cfg,no));
+    const a=document.createElement("a"); a.href="#s"+no; a.textContent=no+" · "+cfg.title; a.dataset.no=no; rail.appendChild(a);
   });
   document.getElementById("secCount").textContent=sections.length;
 
