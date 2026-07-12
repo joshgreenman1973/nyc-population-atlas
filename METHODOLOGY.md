@@ -13,6 +13,7 @@ table. Nothing is estimated or invented by hand.
 | Borough land areas (for density) | U.S. Census Bureau / NYC Department of City Planning land-area figures (square miles) |
 | Current unemployment rate | **U.S. Bureau of Labor Statistics**, Local Area Unemployment Statistics (LAUS), New York city, not seasonally adjusted — pulled live from the BLS public API. Used in Fig. 21 alongside the ACS figures because the ACS five-year *average* unemployment rate is inflated by the pandemic window; the BLS number is the latest month available. |
 | Person-level car ownership | **Hunter College, Dept. of Urban Policy & Planning**, *"Car Ownership in NYC: By the Numbers"* (2024, from its *Shifting Gears* studio), analyzing ACS 2018–2022. Used in the car figure for the person-level statistic (54% of New Yorkers live in a vehicle-owning household even though only ~45% of households own a car, because car-owning households are larger), vehicles per household, and the citywide vehicle total. Household and borough car-ownership rates in that figure are the atlas's own ACS 2020–2024 tabulation, which matches Hunter's within a point. The "vehicles per household by household size" bars and the 50-year growth figures (vehicles +45% / population +11% / multi-car households +127%) are quoted from the same Hunter report. |
+| Undocumented estimate | **NYC Mayor's Office of Immigrant Affairs** (ACS-based modeling): ~412,000 undocumented residents (2022), down from ~611,000 (2012). A modeled estimate, not a census count. See the note below. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
@@ -47,6 +48,31 @@ statistic: the census counts immigrants by country of birth but cannot count
 their U.S.-born children and grandchildren, who become simply "American" in the
 birthplace tables. The fade marks a wave receding into later generations; it is
 not a generation count.
+
+## The neighborhood map (Fig. 03)
+
+The distribution map shades New York's **262 Neighborhood Tabulation Areas
+(NTAs, 2020 vintage)** by American Community Survey 2020–2024 estimates —
+population density, median income, foreign-born share, race/ethnicity shares,
+rent and car-ownership. Colors use **six equal-count (quantile) bins**, so each
+shade holds a similar number of neighborhoods; adjacent shades can differ by
+less than the survey's margin of error, so read the map for pattern, not
+precision. Geometry is a simplified NTA boundary file; the per-NTA ACS values
+are a prior NYC-data build in this workspace, joined by NTA code. Non-residential
+NTAs (parks, airports, cemeteries) with little or no population appear grey.
+
+## Undocumented residents (Fig. 09) — a modeled estimate, not a count
+
+**The Census Bureau does not ask legal status, so no figure on this page counts
+undocumented residents.** The ACS "not a U.S. citizen" category (Fig. 08) is
+much larger and includes lawful permanent residents, students and visa holders —
+it is not an undocumented count. Figure 09 instead reports a **modeled
+estimate** from the **NYC Mayor's Office of Immigrant Affairs** (ACS-based
+modeling): roughly **412,000 undocumented residents as of 2022, down from about
+611,000 in 2012**. Such estimates vary widely by method and year; figures above
+~600,000 in circulation generally describe **New York State**, not the city
+(e.g., Migration Policy Institute). Treat the number as an order-of-magnitude
+estimate with real uncertainty, not a precise total.
 
 ## Universes (denominators)
 

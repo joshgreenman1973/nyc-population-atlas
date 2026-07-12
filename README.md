@@ -1,7 +1,9 @@
 # NYC Population Atlas
 
 **The people of New York City, counted every which way.** A single scrollable
-page that breaks down the city's ~8.5 million residents 36 different ways — by
+page that breaks down the city's ~8.5 million residents 38 different ways — an
+interactive 262-neighborhood distribution map, a modeled undocumented-population
+estimate, and cuts by
 age and borough, race and Hispanic origin, birthplace and citizenship, language,
 ancestry, household, marital status, births and caregiving, education, public vs
 private school, commute, work, occupation, industry and class of worker, income,
@@ -27,7 +29,9 @@ docs/data.json    # baked breakdowns the page renders
 scripts/fetch_acs.py    # one-time pull of every ACS table -> data_raw.json
 scripts/build_data.py   # transforms raw estimates (+ merges timeline) -> docs/data.json
 scripts/labels/         # official Census variable definitions (for reproducibility)
-scripts/immigration_timeline.json  # curated 1900-2023 country-of-birth series (Fig. 10)
+scripts/immigration_timeline.json  # curated 1900-2023 country-of-birth series
+scripts/build_map.py    # bakes docs/nyc-ntas.geojson (neighborhood map)
+docs/nyc-ntas.geojson   # 262 NTA polygons + ACS 2020-24 fields (the Fig. 03 map)
 data_raw.json           # raw per-geography estimate values
 ```
 

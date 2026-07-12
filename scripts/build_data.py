@@ -542,6 +542,25 @@ car_free["hunter"]["growth50yr"] = {
     "popGrowthPct": 11, "multiCarGrowthPct": 127,
 }
 
+# ---- undocumented: modeled estimates (NOT an ACS count) ----
+# The Census Bureau does not ask immigration status, so no figure here comes
+# from the ACS tables. These are third-party MODELED estimates, quoted with
+# their sources and vintages; NYC and NY State figures are kept distinct.
+undocumented = {
+    "nycEstimate": 412000,
+    "nycYear": 2022,
+    "nyc2012": 611000,
+    "shareOfForeignBorn": round(100 * 412000 / foreign_born, 1),
+    "sources": [
+        "NYC Mayor's Office of Immigrant Affairs (ACS-based estimate, 2022): ~412,000, down from ~611,000 in 2012",
+        "Migration Policy Institute estimates ~650,000+ for New York STATE (not the city)",
+    ],
+    "note": ("A modeled estimate, not a census count — the Census Bureau does not "
+             "ask legal status. The ACS 'non-citizen' figure in the citizenship "
+             "tabulation is far larger and includes green-card holders, students "
+             "and visa holders, so it is not a count of the undocumented."),
+}
+
 out = {
     "meta": {
         "source": "U.S. Census Bureau, American Community Survey 2020-2024 5-year estimates",
@@ -591,6 +610,7 @@ out = {
     "mobility": mobility,
     "digital": digital,
     "family": family,
+    "undocumented": undocumented,
 }
 
 # ---- immigration timeline (bar-chart race) ----
