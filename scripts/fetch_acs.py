@@ -76,6 +76,14 @@ GROUP_TABLES = [
     "B28003",  # Presence of a computer and type of internet subscription
     "B13002",  # Women 15-50 who had a birth in the past 12 months
     "B10051",  # Grandparents living with own grandchildren under 18
+    "B08302",  # Time of departure for work
+    "B08604",  # Workers by workplace geography (daytime population)
+    "B25014",  # Tenure by occupants per room (crowding)
+    "B25034",  # Year structure built
+    "B19081",  # Mean household income by quintile (+ top 5%)
+    "B19083",  # Gini index of income inequality
+    "B11007",  # Households with one or more people 65+ / living alone
+    "B26001",  # Group quarters population (total)
 ]
 
 # Single-value estimates (can't be summed for medians -> use the city place)

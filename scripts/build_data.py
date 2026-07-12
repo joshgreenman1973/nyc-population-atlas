@@ -561,6 +561,63 @@ undocumented = {
              "and visa holders, so it is not a count of the undocumented."),
 }
 
+# ---- time of departure for work (B08302) ----
+departure = series([f"B08302_{c:03d}E" for c in range(2, 16)])
+early_shift = sum(v(f"B08302_{c:03d}E") for c in (2, 3, 4))  # before 6 a.m.
+
+# ---- commuter-adjusted daytime population, by borough ----
+# Census formula: residents + workers working in the area - workers living in
+# the area. Workplace-based workers from B08604; resident workers from B08301.
+daytime = []
+for name, bd in BORO.items():
+    pop = bd.get("B01003_001E") or 0
+    at_work = bd.get("B08604_001E") or 0
+    resident_workers = bd.get("B08301_001E") or 0
+    day = pop + at_work - resident_workers
+    daytime.append({"label": name, "night": pop, "day": day,
+                    "changePct": round(100 * (day - pop) / pop, 1)})
+daytime.sort(key=lambda x: -x["changePct"])
+city_day = (v("B01003_001E") + v("B08604_001E") - v("B08301_001E"))
+
+# ---- crowding (B25014): more than one occupant per room ----
+crowd_total = v("B25014_001E")
+crowded = sum(v(f"B25014_{c:03d}E") for c in (5, 6, 7, 11, 12, 13))
+severe = sum(v(f"B25014_{c:03d}E") for c in (6, 7, 12, 13))
+crowding = {"rate": round(100 * crowded / crowd_total, 1),
+            "severeRate": round(100 * severe / crowd_total, 1),
+            "count": crowded, "severeCount": severe}
+
+# ---- year structure built (B25034) ----
+building_age = series([f"B25034_{c:03d}E" for c in range(2, 12)])
+prewar = v("B25034_011E")
+prewar_pct = round(100 * prewar / v("B25034_001E"), 1)
+
+# ---- income ladder (B19081 quintile means + B19083 Gini) ----
+income_ladder = [
+    {"label": "Poorest fifth", "value": v("B19081_001E")},
+    {"label": "Second fifth", "value": v("B19081_002E")},
+    {"label": "Middle fifth", "value": v("B19081_003E")},
+    {"label": "Fourth fifth", "value": v("B19081_004E")},
+    {"label": "Richest fifth", "value": v("B19081_005E")},
+    {"label": "Top 5 percent", "value": v("B19081_006E")},
+]
+gini = CITY.get("B19083_001E")
+ladder_ratio = round(v("B19081_006E") / v("B19081_001E")) if v("B19081_001E") else None
+
+# ---- coupled households incl. same-sex: 2020 decennial PCT15, via extras ----
+# (ACS table B11009 is unpublished at place level, so the decennial count is
+# used instead — an enumeration, not an estimate.)
+
+# ---- seniors living alone (B11007) ----
+seniors = {
+    "hhWith65": v("B11007_002E"),
+    "alone": v("B11007_003E"),
+    "alonePct": round(100 * v("B11007_003E") / v("B11007_002E"), 1),
+}
+
+# ---- group quarters: ACS current total; 2020 decennial detail via extras ----
+gq_now = v("B26001_001E")
+
 out = {
     "meta": {
         "source": "U.S. Census Bureau, American Community Survey 2020-2024 5-year estimates",
@@ -611,7 +668,24 @@ out = {
     "digital": digital,
     "family": family,
     "undocumented": undocumented,
+    "departure": departure,
+    "earlyShift": early_shift,
+    "daytime": {"boroughs": daytime, "cityDay": city_day},
+    "crowding": crowding,
+    "buildingAge": building_age,
+    "prewarPct": prewar_pct,
+    "incomeLadder": income_ladder,
+    "gini": gini,
+    "ladderRatio": ladder_ratio,
+    "seniors": seniors,
+    "gqNow": gq_now,
 }
+
+# ---- official extras (PEP ledger, baby names, dog licenses, 2020 GQ types) ----
+extras_path = os.path.join(HERE, "extras.json")
+if os.path.exists(extras_path):
+    out["extras"] = json.load(open(extras_path))
+    print("merged extras.json")
 
 # ---- immigration timeline (bar-chart race) ----
 # Curated historical country-of-birth series, 1900-2023, ported from the

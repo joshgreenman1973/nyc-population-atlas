@@ -14,6 +14,11 @@ table. Nothing is estimated or invented by hand.
 | Current unemployment rate | **U.S. Bureau of Labor Statistics**, Local Area Unemployment Statistics (LAUS), New York city, not seasonally adjusted — pulled live from the BLS public API. Used in Fig. 21 alongside the ACS figures because the ACS five-year *average* unemployment rate is inflated by the pandemic window; the BLS number is the latest month available. |
 | Person-level car ownership | **Hunter College, Dept. of Urban Policy & Planning**, *"Car Ownership in NYC: By the Numbers"* (2024, from its *Shifting Gears* studio), analyzing ACS 2018–2022. Used in the car figure for the person-level statistic (54% of New Yorkers live in a vehicle-owning household even though only ~45% of households own a car, because car-owning households are larger), vehicles per household, and the citywide vehicle total. Household and borough car-ownership rates in that figure are the atlas's own ACS 2020–2024 tabulation, which matches Hunter's within a point. The "vehicles per household by household size" bars and the 50-year growth figures (vehicles +45% / population +11% / multi-car households +127%) are quoted from the same Hunter report. |
 | Undocumented estimate | **NYC Mayor's Office of Immigrant Affairs** (ACS-based modeling): ~412,000 undocumented residents (2022), down from ~611,000 (2012). A modeled estimate, not a census count. See the note below. |
+| Population ledger (births, deaths, migration) | **U.S. Census Bureau Population Estimates Program**, vintage 2024 — components of change from `co-est2024-alldata.csv`, five boroughs summed, July 2020–July 2024. Components carry a small residual vs. the total change. |
+| Daytime population | Commuter-adjusted daytime population using the **Census Bureau's standard formula**: residents + workers working in the borough (ACS `B08604`, workplace geography) − workers living in the borough (`B08301`). Counts commuters, not tourists/students/patients. |
+| Same-sex couples & group-quarters types | **2020 Decennial Census, DHC** tables `PCT15` (coupled households by type) and `P18` (group quarters by major type) — full enumerations. Used because the equivalent ACS tables aren't published at city level; the current group-quarters *total* is ACS `B26001`. |
+| Baby names | **NYC Dept. of Health & Mental Hygiene**, civil birth registration ("Popular Baby Names," NYC Open Data dataset `25th-nujf`), latest published year. The city suppresses names given fewer than 10 times per ethnicity group; counts here sum a name across groups. |
+| Licensed dogs | **NYC DOHMH Dog Licensing dataset** (NYC Open Data `nu7n-tubp`), licenses *issued* in the latest complete year (the dataset repeats rows across annual extracts, so raw row counts would double-count renewals). Licensed dogs only. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
@@ -117,7 +122,10 @@ enrollment by public/private type · `C24010` occupation · `C24030` industry ·
 `B22010` receipt of SNAP/food stamps · `B24080` class of worker · `B07001`
 geographic mobility in the past year · `B28002`/`B28003` internet and computer
 access · `B13002` women 15–50 who gave birth · `B10051` grandparents raising
-grandchildren.
+grandchildren · `B08302` time of departure for work · `B08604` workers by
+workplace · `B25014` occupants per room (crowding) · `B25034` year structure
+built · `B19081` mean income by quintile · `B19083` Gini index · `B11007`
+seniors living alone · `B26001` group-quarters total.
 
 ## Derived measures
 

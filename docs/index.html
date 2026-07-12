@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 38 ways — an interactive neighborhood map, age, race, birthplace, undocumented estimates, a century-long immigration bar-chart race, language, schools, work, industry, income, rent burden, cars, health coverage and more. U.S. Census / ACS 2020–2024, BLS, NYC City Planning, MOIA, Hunter College.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 49 ways — a neighborhood map, a four-year population ledger, day vs night population, age, race, birthplace, undocumented estimates, an immigration bar-chart race, baby names, same-sex couples, group quarters, inequality, building age, crowding, even the city's licensed dogs. U.S. Census / ACS 2020–2024, BLS, NYC Open Data, MOIA, Hunter College.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -298,7 +298,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">38 TABULATIONS</div>
+    <div class="cell hide-sm red">49 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -392,6 +392,43 @@ function valueBars(items,{max,fmt}){
       <div class="dval">${fmt?fmt(d.value):d.value}</div>`;
     el.appendChild(row);});
   return el;
+}
+function divergingBars(items){
+  // items: {label, value} with signed values; bars grow from a center axis
+  const max=Math.max(...items.map(d=>Math.abs(d.value)));
+  const el=document.createElement("div"); el.className="dtable";
+  items.forEach(d=>{
+    const w=max?Math.abs(d.value)/max*50:0, pos=d.value>=0;
+    const row=document.createElement("div"); row.className="drow";
+    row.innerHTML=`<div class="dlabel">${d.label}</div>
+      <div class="dbarcell" style="padding:0">
+        <div style="position:relative;width:100%;height:16px">
+          <div style="position:absolute;left:50%;top:-6px;bottom:-6px;width:1px;background:var(--ink)"></div>
+          <div class="dbar" data-w="${w}" style="position:absolute;top:1px;height:14px;${pos?"left:50%":"right:50%"};background:${pos?"var(--blue)":"var(--red)"}"></div>
+        </div>
+      </div>
+      <div class="dval" style="color:${pos?"var(--blue)":"var(--red)"}">${pos?"+":"−"}${fmt(Math.abs(d.value))}</div>`;
+    el.appendChild(row);
+  });
+  return el;
+}
+function pairedBars(items){
+  // items: {label, night, day, changePct} — two bars per row
+  const max=Math.max(...items.flatMap(d=>[d.night,d.day]));
+  const el=document.createElement("div"); el.className="dtable";
+  items.forEach(d=>{
+    const row=document.createElement("div"); row.className="drow"; row.style.minHeight="56px";
+    row.innerHTML=`<div class="dlabel">${d.label}</div>
+      <div class="dbarcell" style="flex-direction:column;align-items:stretch;justify-content:center;gap:3px;display:flex">
+        <div class="dbar" data-w="${d.night/max*100}" style="height:10px;background:var(--ink)"></div>
+        <div class="dbar" data-w="${d.day/max*100}" style="height:10px;background:var(--red)"></div>
+      </div>
+      <div class="dval">${fmt(d.night)} ▪<br>${fmt(d.day)} <span style="color:var(--red)">▪</span><span class="pct">${d.changePct>0?"+":""}${d.changePct}%</span></div>`;
+    el.appendChild(row);
+  });
+  const leg=document.createElement("div"); leg.className="race-legend"; leg.style.marginTop="10px";
+  leg.innerHTML=`<span><span class="sw" style="background:var(--ink)"></span>Residents (night)</span><span><span class="sw" style="background:var(--red)"></span>Daytime population</span>`;
+  const wrap=document.createElement("div"); wrap.append(el,leg); return wrap;
 }
 function splitBar(parts,{total}={}){
   const sum=total||parts.reduce((a,b)=>a+b.value,0);
@@ -648,6 +685,8 @@ const MAP_LAYERS=[
   {key:"pct_black_nh",label:"Black",title:"Share Black (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
   {key:"pct_asian_nh",label:"Asian",title:"Share Asian (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
   {key:"pct_white_nh",label:"White",title:"Share White (non-Hispanic)",fmt:v=>Math.round(v)+"%"},
+  {key:"median_age",label:"Age",title:"Median age",fmt:v=>v.toFixed(1)},
+  {key:"pct_poverty",label:"Poverty",title:"Share below the poverty line",fmt:v=>Math.round(v)+"%"},
   {key:"median_gross_rent",label:"Rent",title:"Median gross rent",fmt:v=>"$"+fmt(v)},
   {key:"pct_no_vehicle",label:"Car-free",title:"Share of households without a vehicle",fmt:v=>Math.round(v)+"%"},
 ];
@@ -733,6 +772,14 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`From a colonial town of <b>33,131</b> in 1790 to <span class="rn">${fmt(d.history.at(-1).population)}</span> in 2020 — the modern city's population at every decennial census.`,
       note:`The <b>1890→1900</b> leap is the 1898 consolidation of Brooklyn, Queens, the Bronx and Staten Island into Greater New York — an administrative merger, not organic growth. Decennial census counts.`,
       build:()=>lineChart(d.history)},
+    {topic:"The ledger",title:"Four years, itemized",
+      dek:`Why the number moves. From mid-2020 to mid-2024 the city gained people two ways and lost them two ways: <span class="rn">${fmt(d.extras.pep.cumulative.births)}</span> births and <span class="rn">${fmt(d.extras.pep.cumulative.intl)}</span> international arrivals, against ${fmt(d.extras.pep.cumulative.deaths)} deaths and a net ${fmt(Math.abs(d.extras.pep.cumulative.domestic))} lost to the rest of the country.`,
+      note:`U.S. Census Bureau Population Estimates Program, vintage 2024 (components of change, five boroughs summed, July 2020–July 2024). Components don't sum exactly to the population change; the small remainder is the Census Bureau's residual. The population estimate went from ${fmt(d.extras.pep.pop2020)} (2020) to ${fmt(d.extras.pep.pop2024)} (2024).`,
+      build:()=>divergingBars([
+        {label:"Births",value:d.extras.pep.cumulative.births},
+        {label:"International migration",value:d.extras.pep.cumulative.intl},
+        {label:"Deaths",value:-d.extras.pep.cumulative.deaths},
+        {label:"Net domestic migration",value:d.extras.pep.cumulative.domestic}])},
     {topic:"By borough",title:"Five cities in one",
       dek:`Brooklyn holds the most people; Manhattan packs them tightest; Queens sprawls widest. Population, density and median household income, per borough.`,
       note:`Density is people per square mile of land area. Manhattan's ~${fmt(d.boroughs.find(b=>b.name==="Manhattan").density)}/mi² is roughly ${(d.boroughs.find(b=>b.name==="Manhattan").density/d.boroughs.find(b=>b.name==="Staten Island").density).toFixed(0)}× Staten Island's.`,
@@ -741,6 +788,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Zoom past the boroughs to the city's <span class="rn">262 neighborhoods</span>. The same population, mapped — switch layers to see where density, money, immigrants and each group concentrate. Hover any neighborhood.`,
       note:`Neighborhood Tabulation Areas (2020), shaded by American Community Survey 2020–2024 estimates. Colors use six equal-count (quantile) bins, so each shade holds a similar number of neighborhoods. Small differences between adjacent shades are within the survey's margin of error.`,
       build:()=>choroplethMap()},
+    {topic:"Day & night",title:"The city by day",
+      dek:`The census counts people where they sleep — but every weekday the city redistributes itself. Manhattan swells <span class="rn">${d.daytime.boroughs[0].changePct>0?"+":""}${d.daytime.boroughs[0].changePct}%</span> with commuters while every other borough empties out, and the city as a whole holds about <span class="rn">${fmt(d.daytime.cityDay)}</span> people by day.`,
+      note:`Commuter-adjusted daytime population: residents + workers working in the borough (ACS table B08604, workplace geography) − workers living in the borough (B08301). A standard Census Bureau formula; it counts commuters but not tourists, students or hospital patients, so the true daytime peak runs higher.`,
+      build:()=>pairedBars(d.daytime.boroughs)},
     {topic:"Age & sex",title:"The shape of a generation",
       dek:`A population pyramid: every five-year band, split by sex. Median age is <span class="rn">${T.medianAge}</span>. Women outnumber men, a gap that widens with age.`,
       note:`Universe: total population. Bands combine the Census Bureau's finer age categories into standard five-year groups.`,
@@ -807,6 +858,26 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Marital status of everyone 15 and older. "Never married" is the single largest category — a young, churning city.`,
       note:`Universe: population 15 and older. Male and female counts combined.`,
       build:()=>barChart(d.marital,{total:d.marital.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Couples",title:"Married, partnered, same-sex",
+      dek:`The 2020 census counted <span class="rn">${fmt(d.extras.couples.sameSexTotal)}</span> same-sex couple households in the city — most of them married — alongside 1.3 million opposite-sex couples.`,
+      note:`${d.extras.couples.source} — an enumeration, not a survey estimate. (The equivalent ACS table isn't published for cities, so the decennial count is used.) Same-sex couples split ${fmt(d.extras.couples.maleMale)} male-male and ${fmt(d.extras.couples.femaleFemale)} female-female.`,
+      build:()=>barChart([
+        {label:"Married, opposite-sex",value:d.extras.couples.marriedOpposite},
+        {label:"Cohabiting, opposite-sex",value:d.extras.couples.cohabOpposite},
+        {label:"Married, same-sex",value:d.extras.couples.marriedSame},
+        {label:"Cohabiting, same-sex",value:d.extras.couples.cohabSame}],
+        {total:d.extras.couples.marriedOpposite+d.extras.couples.cohabOpposite+d.extras.couples.marriedSame+d.extras.couples.cohabSame})},
+    {topic:"Aging alone",title:"Growing old on your own",
+      dek:`Of the roughly <span class="rn">${fmt(d.seniors.hhWith65)}</span> households that include someone 65 or older, <span class="rn">${d.seniors.alonePct}%</span> are that person living entirely alone.`,
+      note:`Universe: households (ACS table B11007).`,
+      build:()=>statTiles([
+        {value:fmt(d.seniors.alone),label:`households are a <b>senior living alone</b>`},
+        {value:d.seniors.alonePct,unit:"%",label:`of households with a 65+ member are <b>one person</b>`},
+        {value:fmt(d.seniors.hhWith65),label:`households include someone 65 or older`}])},
+    {topic:"Group quarters",title:"Not in a household at all",
+      dek:`About <span class="rn">${fmt(d.gqNow)}</span> New Yorkers don't live in a household — they live in dorms, nursing homes, shelters, barracks and jails.`,
+      note:`Types from the ${d.extras.gq.source} (a full count); the current total is the ACS 2020–2024 estimate (table B26001). "Other group housing" is the census's noninstitutional catch-all and includes group homes and shelters.`,
+      build:()=>barChart(d.extras.gq.types,{total:d.extras.gq.total2020})},
     {topic:"Births & caregiving",title:"New arrivals, and who raises them",
       dek:`In a single year, some <span class="rn">${fmt(d.family.births)}</span> New York women gave birth — and tens of thousands of grandparents are the ones raising the city's children.`,
       note:`Universe: women 15–50 (ACS table B13002) and grandparents living with their own grandchildren under 18 (B10051). "Responsible" grandparents are those who report being responsible for most of the grandchild's basic needs.`,
@@ -814,6 +885,17 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:d.family.birthRatePer1000,label:`<b>births per 1,000 women</b> aged 15–50 in the past year (${fmt(d.family.births)} births)`},
         {value:d.family.unmarriedShare,unit:"%",label:`of those births were to <b>unmarried</b> mothers`},
         {value:fmt(d.family.grandparentsResponsible),label:`<b>grandparents</b> are responsible for raising their own grandchildren`}])},
+    {topic:"Names",title:"What the newest New Yorkers are named",
+      dek:`The city registers every birth — and publishes the names. The most popular, from the latest release (${d.extras.names.year}).`,
+      note:`NYC Dept. of Health & Mental Hygiene, civil birth registration ("Popular Baby Names," NYC Open Data), ${d.extras.names.year} — the most recent year the city has published. Counts sum the same name across the dataset's ethnicity groups; names given fewer than 10 times per group are excluded by the city.`,
+      build:()=>{
+        const wrap=document.createElement("div"); wrap.style.display="grid"; wrap.style.gap="0 28px";
+        wrap.style.gridTemplateColumns="repeat(auto-fit,minmax(280px,1fr))";
+        const g=document.createElement("div"), b=document.createElement("div");
+        g.innerHTML=`<div class="wcap">Girls</div>`; b.innerHTML=`<div class="wcap">Boys</div>`;
+        g.appendChild(barChart(d.extras.names.girls,{unit:""})); b.appendChild(barChart(d.extras.names.boys,{unit:""}));
+        wrap.append(g,b); return wrap;
+      }},
     {topic:"Education",title:"How far in school",
       dek:`Educational attainment for adults 25 and older. <span class="rn">${d.eduSummary.bachelorsPlusPct}%</span> hold at least a bachelor's degree.`,
       note:`Universe: population 25 and older (${fmt(d.eduSummary.pop25plus)}).`,
@@ -834,6 +916,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`How long the commute actually takes — one-way travel time to work, in minutes.`,
       note:`Universe: workers 16+ who did not work from home.`,
       build:()=>columnChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Departure time",title:"The rush hour, hour by hour",
+      dek:`When the city actually leaves for work. The classic 7–9 a.m. rush is there — but so is the other city: <span class="rn">${fmt(d.earlyShift)}</span> workers out the door before 6 a.m.`,
+      note:`Universe: workers 16+ who did not work from home (ACS table B08302). Time of departure from home.`,
+      build:()=>columnChart(d.departure,{total:d.departure.reduce((a,b)=>a+b.value,0)})},
     {topic:"Work",title:"In the labor force",
       dek:`Employment status for New Yorkers 16 and older — the working, the looking, and those out of the labor force.`,
       note:`ACS universe: population 16+. The ACS 2020–2024 five-year <b>average</b> unemployment rate was ${d.employment.unemploymentRate}%, run high by a window that spans the pandemic; the current rate is from ${d.blsLabor?d.blsLabor.source:"the U.S. Bureau of Labor Statistics"}.`,
@@ -859,6 +945,10 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Household income across the full range, from under $10k to $200k-plus. Median household income is <span class="rn">$${fmt(T.medianHHIncome)}</span>.`,
       note:`Universe: households. Per-capita income is $${fmt(T.perCapitaIncome)}.`,
       build:()=>columnChart(d.income,{total:T.households})},
+    {topic:"Inequality",title:"The income ladder",
+      dek:`Average household income by fifth. The poorest fifth of households averages <span class="rn">$${fmt(d.incomeLadder[0].value)}</span> a year; the top 5 percent averages <span class="rn">$${fmt(d.incomeLadder[5].value)}</span> — about ${d.ladderRatio}× as much.`,
+      note:`Universe: households (ACS table B19081, mean income per quintile; the top 5% overlaps the highest fifth). The city's Gini index of income inequality is ${d.gini} (B19083) — among the highest of any large American county or city; 0 is perfect equality, 1 is one household holding everything.`,
+      build:()=>valueBars(d.incomeLadder,{fmt:x=>"$"+fmt(x)})},
     {topic:"Poverty",title:"Below the line",
       dek:`The official poverty measure — how many New Yorkers, and how many of the city's children, live below the federal poverty threshold.`,
       build:()=>statTiles([
@@ -877,6 +967,17 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`The buildings New Yorkers live in, from detached houses to fifty-plus-unit towers.`,
       note:`Universe: all housing units.`,
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Building age",title:"A pre-war city",
+      dek:`When New York's homes were built. <span class="rn">${d.prewarPct}%</span> of all housing units predate 1940 — the fabled "pre-war" stock — and the building boom has never again matched the 1920s.`,
+      note:`Universe: all housing units (ACS table B25034, year structure built).`,
+      build:()=>columnChart(d.buildingAge.slice().reverse(),{total:d.buildingAge.reduce((a,b)=>a+b.value,0)})},
+    {topic:"Crowding",title:"Room to spare, or none",
+      dek:`The census's crowding measure: more than one occupant per room. About <span class="rn">${d.crowding.rate}%</span> of the city's homes are crowded — several times the national rate.`,
+      note:`Universe: occupied housing units (ACS table B25014). "Severely crowded" is more than 1.5 occupants per room.`,
+      build:()=>statTiles([
+        {value:d.crowding.rate,unit:"%",label:`of households are <b>crowded</b> — over 1 person per room (${fmt(d.crowding.count)} households)`},
+        {value:d.crowding.severeRate,unit:"%",label:`are <b>severely crowded</b> — over 1.5 per room (${fmt(d.crowding.severeCount)})`},
+        {value:T.avgHHSize,label:`average household size, citywide`}])},
     {topic:"Rent burden",title:"What rent eats",
       dek:`For renters, the share of income that disappears into housing. A majority are <span class="rn">rent-burdened</span> — paying at least 30% of household income in rent.`,
       note:`Universe: renter-occupied units paying cash rent (ACS table B25070). "Severely burdened" means paying 50% or more of income on rent. The burden is heaviest in the Bronx and lightest in Manhattan — where higher incomes offset higher rents.`,
@@ -931,7 +1032,18 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       build:()=>statTiles([
         {value:d.veterans.rate,unit:"%",label:`are <b>military veterans</b> — ${fmt(d.veterans.count)} people`},
         {value:d.disability.rate,unit:"%",label:`live <b>with a disability</b> — ${fmt(d.disability.count)} people`},
-        {value:d.health.uninsuredRate,unit:"%",label:`have <b>no health insurance</b> — ${fmt(d.health.uninsured)} people`}])}
+        {value:d.health.uninsuredRate,unit:"%",label:`have <b>no health insurance</b> — ${fmt(d.health.uninsured)} people`}])},
+    {topic:"A coda",title:"The other New Yorkers",
+      dek:`The city licenses its dogs, and publishes that too: <span class="rn">${fmt(d.extras.dogs.issued)}</span> licenses issued in ${d.extras.dogs.year} alone. The most popular dog name in New York is <span class="rn">${d.extras.dogs.names[0].label}</span>.`,
+      note:`NYC Dept. of Health & Mental Hygiene Dog Licensing dataset (NYC Open Data), licenses issued in ${d.extras.dogs.year} — the most recent complete year. Licensed dogs only; the true dog population is larger.`,
+      build:()=>{
+        const wrap=document.createElement("div"); wrap.style.display="grid"; wrap.style.gap="0 28px";
+        wrap.style.gridTemplateColumns="repeat(auto-fit,minmax(280px,1fr))";
+        const n=document.createElement("div"), b=document.createElement("div");
+        n.innerHTML=`<div class="wcap">Top names</div>`; b.innerHTML=`<div class="wcap">Top breeds</div>`;
+        n.appendChild(barChart(d.extras.dogs.names,{unit:""})); b.appendChild(barChart(d.extras.dogs.breeds,{unit:""}));
+        wrap.append(n,b); return wrap;
+      }}
   ];
 
   const host=document.getElementById("sections"); host.innerHTML="";
