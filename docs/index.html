@@ -179,6 +179,58 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
 .note{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--gray); margin-top:18px; line-height:1.55; max-width:78ch; padding-left:14px; border-left:2px solid var(--grid)}
 .note b{color:var(--ink-2)}
 
+/* ---------- waffle grid ---------- */
+.waffle{border-top:2px solid var(--ink); padding-top:18px}
+.wgrid{display:grid; grid-template-columns:repeat(25,1fr); gap:3px; max-width:620px}
+.wgrid .cell{aspect-ratio:1/1; background:var(--grid)}
+.wlegend{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); border:2px solid var(--ink); margin-top:18px}
+.wlegend .li{padding:9px 12px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; display:flex; justify-content:space-between; gap:10px; align-items:baseline}
+.wlegend .li b{color:var(--ink)}
+.wlegend .li .sw{display:inline-block; width:9px; height:9px; margin-right:7px; flex:none}
+.wcap{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--gray); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px}
+
+/* ---------- stacked 100% bar ---------- */
+.stack{display:flex; height:52px; border:2px solid var(--ink); overflow:hidden}
+.stack .seg{border-right:2px solid var(--ink); min-width:0; display:flex; align-items:center; padding:0 8px; overflow:hidden;
+  transition:flex-grow 1s cubic-bezier(.2,.7,.2,1)}
+.stack .seg:last-child{border-right:none}
+.stack .seg span{font-family:"IBM Plex Mono",monospace; font-size:11px; color:#fff; white-space:nowrap; font-variant-numeric:tabular-nums}
+.stack .seg.lite span{color:var(--ink)}
+
+/* ---------- vertical columns ---------- */
+.colwrap{border-top:2px solid var(--ink); overflow-x:auto}
+.cols{display:flex; align-items:stretch; gap:5px; height:320px; padding:22px 0 0; min-width:460px}
+.cols .col{flex:1 1 0; min-width:24px; display:flex; flex-direction:column; align-items:center}
+.cols .cv{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-2); margin-bottom:5px; white-space:nowrap; font-variant-numeric:tabular-nums}
+.cols .cslot{flex:1; width:100%; display:flex; align-items:flex-end}
+.cols .cbar{width:100%; background:var(--ink); height:0; transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.cols .cbar.top{background:var(--red)}
+.cols .cl{font-family:"IBM Plex Mono",monospace; font-size:9px; color:var(--gray); text-transform:uppercase; margin-top:8px; height:46px; width:100%; text-align:center; line-height:1.15; border-top:1px solid var(--grid); padding-top:5px; word-break:break-word}
+
+/* ---------- treemap ---------- */
+.tree{position:relative; width:100%; height:min(64vw,460px); border:2px solid var(--ink); border-top-width:2px}
+.tree .t{position:absolute; overflow:hidden; border-right:1px solid var(--paper); border-bottom:1px solid var(--paper);
+  background:var(--ink); color:#fff; padding:6px 7px}
+.tree .t.top{background:var(--red)}
+.tree .t .tn{font-family:"IBM Plex Mono",monospace; font-size:10.5px; text-transform:uppercase; line-height:1.15}
+.tree .t .tv{font-family:"Big Shoulders Display",sans-serif; font-weight:700; font-size:18px; line-height:1; margin-top:3px; font-variant-numeric:tabular-nums}
+
+/* ---------- dot plot (lollipop) ---------- */
+.dotp{border-top:2px solid var(--ink)}
+.dotp .row{display:grid; grid-template-columns:minmax(120px,230px) 1fr minmax(120px,auto); align-items:center; border-bottom:1px solid var(--grid); min-height:32px}
+.dotp .row:hover{background:var(--panel)}
+.dotp .lab{font-family:"IBM Plex Mono",monospace; font-size:11.5px; text-transform:uppercase; color:var(--ink); padding:6px 14px 6px 0}
+.dotp .track{position:relative; height:100%; border-left:1px solid var(--grid)}
+.dotp .track .line{position:absolute; left:0; top:50%; height:2px; background:var(--ink); width:0; transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.dotp .track .dot{position:absolute; top:50%; width:11px; height:11px; background:var(--ink); transform:translate(-50%,-50%); transition:left .9s cubic-bezier(.2,.7,.2,1); left:0}
+.dotp .track .dot.top,.dotp .track .line.top{background:var(--red)}
+.dotp .val{font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right; padding-left:14px; white-space:nowrap; font-variant-numeric:tabular-nums}
+.dotp .val .pct{color:var(--gray); margin-left:8px; font-size:11.5px}
+@media(max-width:640px){
+  .dotp .row{grid-template-columns:1fr auto}
+  .dotp .track{grid-column:1/3; border-left:none; height:22px; margin-top:2px}
+}
+
 /* ---------- methodology ---------- */
 .method{background:var(--ink); color:#e9e9e5; border-top:2px solid var(--ink)}
 .method .wrap{padding:52px var(--gut) 40px}
@@ -368,6 +420,93 @@ function pyramid(bands,maleTot,femaleTot){
   wrap.append(leg,box); return wrap;
 }
 
+const CATC=["#e4002b","#0f0f0e","#0a2fff","#6f6f6a","#b5b5af","#3a3a37"];
+function allocate(items,total,cells){
+  const raw=items.map(it=>({it, exact: total?it.value/total*cells:0}));
+  const base=raw.map(r=>Math.floor(r.exact)); let used=base.reduce((a,b)=>a+b,0);
+  const rem=raw.map((r,i)=>({i, frac:r.exact-base[i]})).sort((a,b)=>b.frac-a.frac);
+  let k=0; while(used<cells && k<rem.length){ base[rem[k].i]++; used++; k++; }
+  return base;
+}
+function waffle(items,{total,caption}={}){
+  const cells=100, counts=allocate(items,total,cells);
+  const wrap=document.createElement("div"); wrap.className="waffle";
+  if(caption){const c=document.createElement("div"); c.className="wcap"; c.textContent=caption; wrap.appendChild(c);}
+  const grid=document.createElement("div"); grid.className="wgrid";
+  let seq=[]; counts.forEach((n,i)=>{for(let j=0;j<n;j++)seq.push(i);});
+  seq.forEach(gi=>{const cell=document.createElement("div"); cell.className="cell"; cell.style.background=CATC[gi%CATC.length]; grid.appendChild(cell);});
+  const leg=document.createElement("div"); leg.className="wlegend";
+  items.forEach((it,i)=>{const li=document.createElement("div"); li.className="li";
+    li.innerHTML=`<span><span class="sw" style="background:${CATC[i%CATC.length]}"></span>${it.label}</span><b class="tnum">${pctS(it.value,total)}</b>`;
+    leg.appendChild(li);});
+  wrap.append(grid,leg); return wrap;
+}
+function stackedBar(items,{total}={}){
+  const sum=total||items.reduce((a,b)=>a+b.value,0);
+  const wrap=document.createElement("div");
+  const ticks=document.createElement("div"); ticks.className="split-ticks";
+  ticks.innerHTML=`<span>0%</span><span>25</span><span>50</span><span>75</span><span>100%</span>`;
+  const bar=document.createElement("div"); bar.className="stack";
+  items.forEach((p,i)=>{const seg=document.createElement("div"); seg.className="seg"+(i>=4?" lite":"");
+    seg.style.background=CATC[i%CATC.length]; seg.style.flexGrow=p.value; seg.dataset.grow=p.value; seg.style.flexBasis="0";
+    seg.innerHTML=`<span>${pctS(p.value,sum)}</span>`; bar.appendChild(seg);});
+  const leg=document.createElement("div"); leg.className="split-legend";
+  items.forEach((p,i)=>{const li=document.createElement("div"); li.className="li";
+    li.innerHTML=`<span><span class="sw" style="background:${CATC[i%CATC.length]}"></span>${p.label}</span><b class="tnum">${fmt(p.value)}</b>`;
+    leg.appendChild(li);});
+  wrap.append(ticks,bar,leg); return wrap;
+}
+function shortLab(s){
+  return s.replace(/,000/g,"k").replace(/,999/g,"k").replace(/ to /," – ").replace(/Less than /,"< ")
+    .replace(/ or more/,"+").replace(/ minutes?/,"").replace(/1-unit /,"1-unit ").replace(/\(.*\)/,"").trim();
+}
+function columnChart(items,{total}={}){
+  const max=Math.max(...items.map(d=>d.value)), maxI=items.findIndex(d=>d.value===max);
+  const wrap=document.createElement("div"); wrap.className="colwrap";
+  const cols=document.createElement("div"); cols.className="cols";
+  items.forEach((d,i)=>{const c=document.createElement("div"); c.className="col";
+    c.innerHTML=`<div class="cv">${d.value>=1000?fmtK(d.value):d.value}</div>
+      <div class="cslot"><div class="cbar ${i===maxI?'top':''}" data-h="${max?d.value/max*100:0}"></div></div>
+      <div class="cl">${shortLab(d.label)}</div>`;
+    cols.appendChild(c);});
+  wrap.appendChild(cols); return wrap;
+}
+function treemap(items,{total}={}){
+  const box=document.createElement("div"); box.className="tree";
+  const W=100,H=62;
+  const data=items.slice().sort((a,b)=>b.value-a.value);
+  const totv=data.reduce((s,c)=>s+c.value,0);
+  const scaled=data.map(c=>({c,a:c.value/totv*(W*H)}));
+  const rect={x:0,y:0,w:W,h:H}; const out=[];
+  const worst=(row,side)=>{const s=row.reduce((a,b)=>a+b.a,0);const mx=Math.max(...row.map(r=>r.a)),mn=Math.min(...row.map(r=>r.a));
+    return Math.max(side*side*mx/(s*s),s*s/(side*side*mn));};
+  function place(row){const s=row.reduce((a,b)=>a+b.a,0);
+    if(rect.w>=rect.h){const rw=s/rect.h; let cy=rect.y; row.forEach(r=>{const rh=r.a/rw; out.push({...r,x:rect.x,y:cy,w:rw,h:rh}); cy+=rh;}); rect.x+=rw; rect.w-=rw;}
+    else{const rh=s/rect.w; let cx=rect.x; row.forEach(r=>{const rw=r.a/rh; out.push({...r,x:cx,y:rect.y,w:rw,h:rh}); cx+=rw;}); rect.y+=rh; rect.h-=rh;}}
+  let row=[],i=0;
+  while(i<scaled.length){const it=scaled[i],side=Math.min(rect.w,rect.h);
+    if(row.length===0){row.push(it);i++;continue;}
+    if(worst([...row,it],side)<=worst(row,side)){row.push(it);i++;} else {place(row);row=[];}}
+  if(row.length)place(row);
+  out.forEach((t,idx)=>{const el=document.createElement("div"); el.className="t"+(t.c.value===data[0].value?" top":"");
+    el.style.left=t.x/W*100+"%"; el.style.top=t.y/H*100+"%"; el.style.width=t.w/W*100+"%"; el.style.height=t.h/H*100+"%";
+    const showV=t.w>9&&t.h>7;
+    el.innerHTML=`<div class="tn">${t.c.label}</div>${showV?`<div class="tv tnum">${fmtK(t.c.value)}</div>`:""}`;
+    box.appendChild(el);});
+  return box;
+}
+function dotPlot(items,{total,unit=""}={}){
+  const max=Math.max(...items.map(d=>d.value));
+  const el=document.createElement("div"); el.className="dotp";
+  items.forEach((d,i)=>{const w=max?d.value/max*100:0;
+    const row=document.createElement("div"); row.className="row";
+    row.innerHTML=`<div class="lab">${d.label}</div>
+      <div class="track"><div class="line ${i===0?'top':''}" data-w="${w}"></div><div class="dot ${i===0?'top':''}" data-x="${w}"></div></div>
+      <div class="val">${fmt(d.value)}<span class="pct">${total?pctS(d.value,total):unit}</span></div>`;
+    el.appendChild(row);});
+  return el;
+}
+
 function makeSection(cfg){
   const s=document.createElement("section"); s.className="sec reveal"; s.id="s"+cfg.no;
   const w=document.createElement("div"); w.className="wrap";
@@ -403,8 +542,14 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       build:()=>pyramid(d.sexAge.bands,d.sexAge.totalMale,d.sexAge.totalFemale)},
     {no:"04",tag:"Fig. 04 — Race",title:"No majority",
       dek:`New York has no racial majority. Shown the way the census asks race — a question kept separate from Hispanic origin (Fig. 05).`,
-      note:`Universe: total population. Single-race "alone" responses plus two-or-more races; Hispanic/Latino residents appear across every race group.`,
-      build:()=>barChart(d.race,{total:T.population})},
+      note:`Universe: total population. Each square is 1% of the city. Hispanic/Latino is counted as its own group here; the rest are non-Hispanic single-race and multiracial responses.`,
+      build:()=>waffle([
+        {label:"Hispanic (any race)",value:d.hispanic[0].value},
+        {label:"White (non-Hisp.)",value:d.race.find(r=>r.label==="White").value},
+        {label:"Black (non-Hisp.)",value:d.race.find(r=>r.label==="Black").value},
+        {label:"Asian (non-Hisp.)",value:d.race.find(r=>r.label==="Asian").value},
+        {label:"Other / multiracial",value:d.race.filter(r=>!["White","Black","Asian"].includes(r.label)).reduce((a,b)=>a+b.value,0)}
+      ],{total:T.population,caption:"100 squares = 100% of New Yorkers · 1 square ≈ 85,000 people"})},
     {no:"05",tag:"Fig. 05 — Hispanic origin",title:"Hispanic or not",
       dek:`Hispanic or Latino origin is asked separately from race. Nearly <span class="rn">${pctS(d.hispanic[0].value,T.population)}</span> of the city is Hispanic, of any race.`,
       build:()=>splitBar(d.hispanic,{total:T.population})},
@@ -414,20 +559,20 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       build:()=>splitBar([{label:"Foreign-born",value:d.nativity.foreignBorn},{label:"Native-born",value:d.nativity.native}])},
     {no:"07",tag:"Fig. 07 — Citizenship",title:"The paths to belonging",
       dek:`How New Yorkers relate to citizenship — born citizens, naturalized citizens, and non-citizens.`,
-      note:`Universe: total population.`,
-      build:()=>barChart(d.citizenship,{total:T.population})},
+      note:`Universe: total population. One bar, five statuses, summing to the whole city.`,
+      build:()=>stackedBar(d.citizenship,{total:T.population})},
     {no:"08",tag:"Fig. 08 — Region of birth",title:"Which part of the world",
       dek:`Among the foreign-born, the world region they came from. The Americas and Asia dominate New York's immigration.`,
       note:`Universe: foreign-born population (${fmt(d.nativity.foreignBorn)}).`,
       build:()=>barChart(d.regionOfBirth,{total:d.nativity.foreignBorn})},
     {no:"09",tag:"Fig. 09 — Country of birth",title:"Twenty homelands",
       dek:`The twenty countries that sent the most New Yorkers, by number of residents born there.`,
-      note:`Universe: foreign-born population. Top 20 of dozens of countries the census tracks.`,
-      build:()=>barChart(d.countryOfBirth,{total:d.nativity.foreignBorn})},
+      note:`Universe: foreign-born population. Top 20 of dozens of countries the census tracks; each rectangle is sized by the number of residents born there.`,
+      build:()=>treemap(d.countryOfBirth,{total:d.nativity.foreignBorn})},
     {no:"10",tag:"Fig. 10 — Ancestry",title:"Where families trace back",
       dek:`Self-reported ancestry — how New Yorkers describe their roots, born abroad or not. Top twenty.`,
       note:`Universe: total population reporting an ancestry (optional question, so the sum is less than the city total). Percentages are of total population.`,
-      build:()=>barChart(d.ancestry,{total:T.population})},
+      build:()=>dotPlot(d.ancestry,{total:T.population})},
     {no:"11",tag:"Fig. 11 — Language",title:"What's spoken at home",
       dek:`Nearly half of New Yorkers speak a language other than English at home. The languages, ranked.`,
       note:`Universe: population 5 and older. Groups follow the census's collapsed language categories.`,
@@ -440,8 +585,8 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:fmt(d.english.total5plus),label:`total population age 5+ measured`}])},
     {no:"13",tag:"Fig. 13 — Households",title:"Who lives together",
       dek:`The city's <span class="rn">${fmt(T.households)}</span> households, by type — from married couples to people living alone.`,
-      note:`Universe: households. Average household size is ${T.avgHHSize}.`,
-      build:()=>barChart(d.household,{total:T.households})},
+      note:`Universe: households. Each square is 1% of the city's ${fmt(T.households)} households. Average household size is ${T.avgHHSize}.`,
+      build:()=>waffle(d.household,{total:T.households,caption:"100 squares = 100% of households"})},
     {no:"14",tag:"Fig. 14 — Marital status",title:"Married, single, in between",
       dek:`Marital status of everyone 15 and older. "Never married" is the single largest category — a young, churning city.`,
       note:`Universe: population 15 and older. Male and female counts combined.`,
@@ -449,11 +594,11 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     {no:"15",tag:"Fig. 15 — Education",title:"How far in school",
       dek:`Educational attainment for adults 25 and older. <span class="rn">${d.eduSummary.bachelorsPlusPct}%</span> hold at least a bachelor's degree.`,
       note:`Universe: population 25 and older (${fmt(d.eduSummary.pop25plus)}).`,
-      build:()=>barChart(d.education,{total:d.eduSummary.pop25plus})},
+      build:()=>columnChart(d.education,{total:d.eduSummary.pop25plus})},
     {no:"16",tag:"Fig. 16 — School",title:"Everyone in class",
       dek:`Where the city's students are enrolled, from preschool through graduate school.`,
       note:`Universe: population 3 and older enrolled in school.`,
-      build:()=>barChart(d.school,{total:d.school.reduce((a,b)=>a+b.value,0)})},
+      build:()=>columnChart(d.school,{total:d.school.reduce((a,b)=>a+b.value,0)})},
     {no:"17",tag:"Fig. 17 — Commute",title:"How they get to work",
       dek:`New York runs on transit: the subway alone carries more commuters than every form of driving combined.`,
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,
@@ -461,7 +606,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     {no:"18",tag:"Fig. 18 — Travel time",title:"Minutes each way",
       dek:`How long the commute actually takes — one-way travel time to work, in minutes.`,
       note:`Universe: workers 16+ who did not work from home.`,
-      build:()=>barChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
+      build:()=>columnChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
     {no:"19",tag:"Fig. 19 — Work",title:"In the labor force",
       dek:`Employment status for everyone 16 and older — the working, the looking, and those out of the labor force.`,
       build:()=>statTiles([
@@ -471,7 +616,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     {no:"20",tag:"Fig. 20 — Income",title:"What households earn",
       dek:`Household income across the full range, from under $10k to $200k-plus. Median household income is <span class="rn">$${fmt(T.medianHHIncome)}</span>.`,
       note:`Universe: households. Per-capita income is $${fmt(T.perCapitaIncome)}.`,
-      build:()=>barChart(d.income,{total:T.households})},
+      build:()=>columnChart(d.income,{total:T.households})},
     {no:"21",tag:"Fig. 21 — Poverty",title:"Below the line",
       dek:`The official poverty measure — how many New Yorkers, and how many of the city's children, live below the federal poverty threshold.`,
       build:()=>statTiles([
@@ -485,7 +630,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     {no:"23",tag:"Fig. 23 — Type of home",title:"What they live in",
       dek:`The buildings New Yorkers live in, from detached houses to fifty-plus-unit towers.`,
       note:`Universe: all housing units.`,
-      build:()=>barChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
+      build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
     {no:"24",tag:"Fig. 24 — Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,
@@ -505,15 +650,18 @@ fetch("data.json").then(r=>r.json()).then(d=>{
 
   const railLinks=[...rail.children];
   const io=new IntersectionObserver(es=>es.forEach(e=>{
-    if(e.isIntersecting){e.target.classList.add("in");
-      e.target.querySelectorAll(".dbar,[data-w]").forEach(f=>{if(f.dataset.w!=null)f.style.width=f.dataset.w+"%";});
-      e.target.querySelectorAll(".split .seg").forEach(sg=>sg.style.flexGrow=sg.dataset.grow);
+    if(e.isIntersecting){e.target.classList.add("in"); animate(e.target);
     }}),{threshold:.12});
+  function animate(t){
+    t.querySelectorAll("[data-w],[data-h],[data-x]").forEach(f=>{
+      if(f.dataset.w!=null)f.style.width=f.dataset.w+"%";
+      if(f.dataset.h!=null)f.style.height=f.dataset.h+"%";
+      if(f.dataset.x!=null)f.style.left=f.dataset.x+"%";});
+    t.querySelectorAll(".split .seg,.stack .seg").forEach(sg=>sg.style.flexGrow=sg.dataset.grow);
+  }
   document.querySelectorAll(".sec").forEach(s=>io.observe(s));
   function forceReveal(){document.querySelectorAll(".sec").forEach(s=>{const r=s.getBoundingClientRect();
-    if(r.top<innerHeight&&r.bottom>0){s.classList.add("in");
-      s.querySelectorAll(".dbar,[data-w]").forEach(f=>{if(f.dataset.w!=null)f.style.width=f.dataset.w+"%";});
-      s.querySelectorAll(".split .seg").forEach(sg=>sg.style.flexGrow=sg.dataset.grow);}});}
+    if(r.top<innerHeight&&r.bottom>0){s.classList.add("in"); animate(s);}});}
   addEventListener("hashchange",()=>setTimeout(forceReveal,60));
   setTimeout(forceReveal,120);
   if(location.hash){const t=document.querySelector(location.hash); if(t)setTimeout(()=>t.scrollIntoView(),80);}
