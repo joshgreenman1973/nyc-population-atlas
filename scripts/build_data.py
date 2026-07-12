@@ -388,9 +388,34 @@ rent_burden = {
     "count30": burden30, "count50": burden50,
 }
 
-# ---- car-free households (B25044) ----
+# ---- car ownership (B25044) — household vs person, and by borough ----
+# Household-level car-free rate is the ACS measure. Hunter College's key point
+# is that because car-owning households are LARGER, a slim majority of *people*
+# live in a household with a vehicle even though a minority of households own one.
 no_veh = v("B25044_003E") + v("B25044_010E")
-car_free = {"count": no_veh, "rate": round(100 * no_veh / v("B25044_001E"), 1)}
+car_by_boro = []
+for name, bd in BORO.items():
+    tot = bd.get("B25044_001E") or 0
+    nov = (bd.get("B25044_003E") or 0) + (bd.get("B25044_010E") or 0)
+    if tot:
+        car_by_boro.append({"label": name, "value": round(100 * (1 - nov / tot), 1)})
+car_by_boro.sort(key=lambda x: -x["value"])
+car_free = {
+    "count": no_veh,
+    "rate": round(100 * no_veh / v("B25044_001E"), 1),          # % of households car-free
+    "ownRate": round(100 * (1 - no_veh / v("B25044_001E")), 1),  # % of households with a car
+    "byBorough": car_by_boro,
+    # Sourced separately (different vintage) — attributed to Hunter on the page.
+    "hunter": {
+        "peopleWithVehiclePct": 54,
+        "householdsWithVehiclePct": 45,
+        "vehiclesPerHH": 0.62,
+        "totalVehicles": 2060000,
+        "dataYears": "2018–2022",
+        "source": 'Hunter College Dept. of Urban Policy & Planning, '
+                  '"Car Ownership in NYC: By the Numbers" (2024)',
+    },
+}
 
 # ---- SNAP / food assistance (B22010) ----
 snap_hh = v("B22010_002E")

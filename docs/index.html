@@ -347,15 +347,18 @@ const fmtK = n => n>=1e6 ? (n/1e6).toFixed(n>=1e7?0:1)+"M" : n>=1e3 ? Math.round
 const pctS = (n,t) => t ? (100*n/t).toFixed(100*n/t<10?1:0)+"%" : "";
 
 /* ---- chart builders ---- */
-function barChart(items,{total,unit=""}={}){
+function barChart(items,{total,unit="",showCount=true}={}){
   const max=Math.max(...items.map(d=>d.value));
   const el=document.createElement("div"); el.className="dtable";
   items.forEach((d,i)=>{
     const w=max?(d.value/max*100):0;
     const row=document.createElement("div"); row.className="drow";
+    const valHtml = showCount
+      ? `${fmt(d.value)}<span class="pct">${total?pctS(d.value,total):unit}</span>`
+      : `${total?pctS(d.value,total):d.value+unit}`;
     row.innerHTML=`<div class="dlabel">${d.label}</div>
       <div class="dbarcell"><div class="dbar ${i===0?'top':''}" data-w="${w}"></div></div>
-      <div class="dval">${fmt(d.value)}<span class="pct">${total?pctS(d.value,total):unit}</span></div>`;
+      <div class="dval">${valHtml}</div>`;
     el.appendChild(row);
   });
   return el;
@@ -760,10 +763,21 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:d.rentBurden.rate30,unit:"%",label:`of renters are <b>rent-burdened</b> — 30%+ of income on rent`},
         {value:d.rentBurden.rate50,unit:"%",label:`are <b>severely burdened</b> — 50%+ of income (${fmt(d.rentBurden.count50)} households)`},
         {value:`$${fmt(T.medianGrossRent)}`,label:`median gross rent, citywide`}])},
-    {topic:"Cars",title:"A city that doesn't drive",
-      dek:`New York is the rare American city where most households own no car at all — <span class="rn">${d.carFree.rate}%</span> are car-free.`,
-      note:`Universe: occupied housing units (ACS table B25044).`,
-      build:()=>splitBar([{label:"No vehicle",value:d.carFree.count},{label:"One or more vehicles",value:T.households-d.carFree.count}])},
+    {topic:"Cars",title:"Who actually has a car",
+      dek:`New York is called a city without cars — and by <b>households</b> it is: <span class="rn">${d.carFree.rate}%</span> own no vehicle. But car-owning homes are larger, so a slim majority of <b>people</b> — <span class="rn">${d.carFree.hunter.peopleWithVehiclePct}%</span> — actually live in a household with a car. Which measure you use flips the story.`,
+      note:`Household figures and the borough breakdown: ACS 2020–2024, table B25044 (occupied units). The person-level share, vehicles per household and the ~2 million-vehicle citywide total come from ${d.carFree.hunter.source}, which analyzed ACS ${d.carFree.hunter.dataYears} data; its borough ownership rates match this atlas's ACS tabulation within a point.`,
+      build:()=>{
+        const wrap=document.createElement("div");
+        wrap.appendChild(statTiles([
+          {value:d.carFree.rate,unit:"%",label:`of <b>households</b> are car-free — a minority own a vehicle (ACS)`},
+          {value:d.carFree.hunter.peopleWithVehiclePct,unit:"%",label:`of <b>New Yorkers</b> live in a household <b>with</b> a car (Hunter College)`},
+          {value:d.carFree.hunter.vehiclesPerHH,label:`vehicles per household — about a third of the U.S. average (Hunter College)`}
+        ]));
+        const cap=document.createElement("div"); cap.className="wcap"; cap.style.margin="26px 0 0";
+        cap.textContent="Share of households owning a vehicle, by borough";
+        wrap.append(cap, barChart(d.carFree.byBorough,{total:100,showCount:false}));
+        return wrap;
+      }},
     {topic:"Three more cuts",title:"Veterans, disability, coverage",
       dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,

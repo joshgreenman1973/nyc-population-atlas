@@ -12,6 +12,7 @@ table. Nothing is estimated or invented by hand.
 | Population timeline, 1790–2020 | U.S. Census Bureau **decennial census** counts (modern five-borough area); NYC Department of City Planning historical population tables |
 | Borough land areas (for density) | U.S. Census Bureau / NYC Department of City Planning land-area figures (square miles) |
 | Current unemployment rate | **U.S. Bureau of Labor Statistics**, Local Area Unemployment Statistics (LAUS), New York city, not seasonally adjusted — pulled live from the BLS public API. Used in Fig. 21 alongside the ACS figures because the ACS five-year *average* unemployment rate is inflated by the pandemic window; the BLS number is the latest month available. |
+| Person-level car ownership | **Hunter College, Dept. of Urban Policy & Planning**, *"Car Ownership in NYC: By the Numbers"* (2024, from its *Shifting Gears* studio), analyzing ACS 2018–2022. Used in the car figure for the person-level statistic (54% of New Yorkers live in a vehicle-owning household even though only ~45% of households own a car, because car-owning households are larger), vehicles per household, and the citywide vehicle total. Household and borough car-ownership rates in that figure are the atlas's own ACS 2020–2024 tabulation, which matches Hunter's within a point. |
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
