@@ -980,11 +980,11 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: all housing units.`,
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
     {topic:"Building age",title:"A pre-war city",
-      dek:`When New York's homes were built. <span class="rn">${d.prewarPct}%</span> of all housing units predate 1940 — the fabled "pre-war" stock — and the building boom has never again matched the 1920s.`,
+      dek:`When New York's homes were built. <span class="rn">${d.prewarPct}%</span> of all housing units predate 1940 — the fabled "pre-war" stock — and no later decade comes close to that pre-1940 wave.`,
       note:`Universe: all housing units (ACS table B25034, year structure built).`,
       build:()=>columnChart(d.buildingAge.slice().reverse(),{total:d.buildingAge.reduce((a,b)=>a+b.value,0)})},
     {topic:"Crowding",title:"Room to spare, or none",
-      dek:`The census's crowding measure: more than one occupant per room. About <span class="rn">${d.crowding.rate}%</span> of the city's homes are crowded — several times the national rate.`,
+      dek:`The census's crowding measure: more than one occupant per room. About <span class="rn">${d.crowding.rate}%</span> of the city's homes are crowded — nearly three times the national rate of about 3%.`,
       note:`Universe: occupied housing units (ACS table B25014). "Severely crowded" is more than 1.5 occupants per room.`,
       build:()=>statTiles([
         {value:d.crowding.rate,unit:"%",label:`of households are <b>crowded</b> — over 1 person per room (${fmt(d.crowding.count)} households)`},
