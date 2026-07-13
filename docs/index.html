@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEW YORK CITY — POPULATION, TABULATED</title>
-<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 50 ways — a neighborhood map with a 2010–2020 growth layer, a population ledger, day vs night population, county-to-county migration flows, life expectancy by neighborhood, school-system rosters, age, race, birthplace, undocumented estimates, an immigration bar-chart race, baby names, inequality, even the city's licensed dogs. U.S. Census / ACS, BLS, DOHMH, DOE, City Planning, NYC Open Data.">
+<meta name="description" content="A statistical broadsheet: New York City's 8,483,844 residents tabulated 49 ways — a neighborhood map with a 2010–2020 growth layer, a population ledger, day vs night population, county-to-county migration flows, life expectancy by neighborhood, school-system rosters, age, race, birthplace, undocumented estimates, an immigration bar-chart race, baby names, inequality, even the city's licensed dogs. U.S. Census / ACS, BLS, DOHMH, DOE, City Planning, NYC Open Data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:opsz,wght@10..72,400;10..72,500;10..72,700;10..72,800;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -301,7 +301,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
   <div class="wrap">
     <div class="cell">◼ NYC / POPULATION</div>
     <div class="cell hide-sm">SRC: U.S. CENSUS · ACS 2020–24</div>
-    <div class="cell hide-sm red">50 TABULATIONS</div>
+    <div class="cell hide-sm red">49 TABULATIONS</div>
     <div class="cell spring"></div>
     <div class="cell aic" id="aic" style="border-right:none; padding-right:0">
       <button class="aic-btn" onclick="document.getElementById('aic').classList.toggle('open')">⚠ AI CAUTION</button>
@@ -891,7 +891,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:d.family.unmarriedShare,unit:"%",label:`of those births were to <b>unmarried</b> mothers`},
         {value:fmt(d.family.grandparentsResponsible),label:`<b>grandparents</b> are responsible for raising their own grandchildren`}])},
     {topic:"Names",title:"What the newest New Yorkers are named",
-      dek:`The city registers every birth — and publishes the names. The most popular, from the latest release (${d.extras.names.year}).`,
+      dek:`The city registers every birth — and publishes the names. These are the most popular from <span class="rn">${d.extras.names.year}</span>, which is as recent as the city's data goes: the Health Department hasn't released a newer year.`,
       note:`NYC Dept. of Health & Mental Hygiene, civil birth registration ("Popular Baby Names," NYC Open Data), ${d.extras.names.year} — the most recent year the city has published. Counts sum the same name across the dataset's ethnicity groups; names given fewer than 10 times per group are excluded by the city.`,
       build:()=>{
         const wrap=document.createElement("div"); wrap.style.display="grid"; wrap.style.gap="0 28px";
@@ -909,17 +909,20 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`Where the city's students are enrolled, from preschool through graduate school.`,
       note:`Universe: population 3 and older enrolled in school.`,
       build:()=>columnChart(d.school,{total:d.school.reduce((a,b)=>a+b.value,0)})},
-    {topic:"Public or private",title:"Public, private, parochial",
-      dek:`Of the <span class="rn">${fmt(d.schoolType.k12Total)}</span> children in kindergarten through 12th grade, <span class="rn">${d.schoolType.k12PublicShare}%</span> attend public school — one of the largest public-school populations in the country.`,
-      note:`Universe: population enrolled in K–12 (ACS table B14002; "public" includes charter schools). The public share runs from about ${Math.round(100*d.schoolType.byLevel[0].public/(d.schoolType.byLevel[0].public+d.schoolType.byLevel[0].private))}% in kindergarten to ${Math.round(100*d.schoolType.byLevel[3].public/(d.schoolType.byLevel[3].public+d.schoolType.byLevel[3].private))}% in grades 9–12. Across all levels including college and graduate school, ${d.schoolType.allPublicShare}% of enrolled students attend public institutions.`,
-      build:()=>splitBar([{label:"Public school",value:d.schoolType.k12Public},{label:"Private or parochial",value:d.schoolType.k12Private}])},
-    {topic:"The roster",title:"The school system's own count",
-      dek:`Two ways to count the same students. The census asks parents; the school system counts its rosters. The Department of Education's headcount: <span class="rn">${fmt(d.extras.doe.k12)}</span> K–12 students in ${d.extras.doe.year}, across ${fmt(d.extras.doe.schools)} schools.`,
-      note:`NYC Dept. of Education Demographic Snapshot (NYC Open Data), ${d.extras.doe.year}, summed across all ${fmt(d.extras.doe.schools)} schools including ${d.extras.doe.charterSchools} charters. The ACS public-school figure (Fig. 18) is a survey estimate averaged over 2020–2024 — a window that starts at higher pre-decline enrollment — and counts wherever parents say their child attends; rosters and surveys will never match exactly.`,
-      build:()=>statTiles([
-        {value:fmt(d.extras.doe.k12),label:`K–12 students on <b>DOE rosters</b> (${d.extras.doe.year}, incl. charters)`},
-        {value:fmt(d.schoolType.k12Public),label:`K–12 public-school students per the <b>census survey</b> (ACS 2020–24 avg.)`},
-        {value:fmt(d.extras.doe.prek),label:`more children in <b>3-K and pre-K</b> on DOE rosters`}])},
+    {topic:"Public school",title:"In public school",
+      dek:`Of the <span class="rn">${fmt(d.schoolType.k12Total)}</span> children in kindergarten through 12th grade, <span class="rn">${d.schoolType.k12PublicShare}%</span> attend public school — the country's largest public school system. Two agencies count them two ways: the census asks parents, the Department of Education counts its own rosters.`,
+      note:`K–12 public/private split from ACS table B14002 ("public" includes charter schools); the public share runs from about ${Math.round(100*d.schoolType.byLevel[0].public/(d.schoolType.byLevel[0].public+d.schoolType.byLevel[0].private))}% in kindergarten to ${Math.round(100*d.schoolType.byLevel[3].public/(d.schoolType.byLevel[3].public+d.schoolType.byLevel[3].private))}% in grades 9–12. Roster figures: NYC Dept. of Education Demographic Snapshot (${d.extras.doe.year}, ${fmt(d.extras.doe.schools)} schools incl. ${d.extras.doe.charterSchools} charters). The DOE roster and the ACS estimate differ because one is an operational headcount and the other a 2020–2024 survey average that starts at higher, pre-decline enrollment.`,
+      build:()=>{
+        const wrap=document.createElement("div");
+        wrap.appendChild(splitBar([{label:"Public school",value:d.schoolType.k12Public},{label:"Private or parochial",value:d.schoolType.k12Private}]));
+        const cap=document.createElement("div"); cap.className="wcap"; cap.style.margin="26px 0 0";
+        cap.textContent="Two counts of the same students";
+        wrap.append(cap, statTiles([
+          {value:fmt(d.extras.doe.k12),label:`K–12 on <b>DOE rosters</b> (${d.extras.doe.year})`},
+          {value:fmt(d.schoolType.k12Public),label:`public K–12 per the <b>census survey</b> (ACS)`},
+          {value:fmt(d.extras.doe.prek),label:`more children in <b>3-K and pre-K</b> (DOE)`}]));
+        return wrap;
+      }},
     {topic:"Commute",title:"How they get to work",
       dek:`New York runs on transit: the subway alone carries more commuters than every form of driving combined.`,
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,

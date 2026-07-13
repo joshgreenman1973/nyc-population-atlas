@@ -238,7 +238,7 @@ edu_summary = {"pop25plus": edu_total, "bachelorsPlus": bachelors_plus,
 
 # ---- commute to work ----
 commute = [
-    {"label": "Subway or elevated rail", "value": v("B08301_012E")},
+    {"label": "Subway", "value": v("B08301_012E")},
     {"label": "Bus", "value": v("B08301_011E")},
     {"label": "Drove alone", "value": v("B08301_003E")},
     {"label": "Worked from home", "value": v("B08301_021E")},
