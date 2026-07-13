@@ -1,7 +1,7 @@
 # NYC Population Atlas
 
 **The people of New York City, counted every which way.** A single scrollable
-page that breaks down the city's ~8.5 million residents 52 different ways — an
+page that breaks down the city's ~8.5 million residents 50 different ways — an
 interactive 262-neighborhood map (with a 2010–2020 decennial growth layer), a
 four-year population ledger (births/deaths/migration), commuter-adjusted
 day-vs-night population, county-to-county migration flows, life expectancy by
