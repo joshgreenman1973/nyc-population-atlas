@@ -322,7 +322,7 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
     <div class="bignum tnum" id="heroNum">8,483,844</div>
     <h1>Residents, counted <span>every which way</span> the census allows.</h1>
     <div class="hero-grid">
-      <p class="lede">One city, <b>more than 8.4 million</b> people — and as many ways to divide them as the U.S. Census can measure. What follows is the same population run through <b id="secCount">24</b> tabulations: by age and borough, birthplace and language, work, income, housing and more. A statistical portrait, sourced line by line.</p>
+      <p class="lede">One city, <b>more than 8.4 million</b> people — and as many ways to divide them as the U.S. Census can measure. What follows is the same population run through <b id="secCount">24</b> tabulations: by age and borough, birthplace and language, work, income, housing and more. Each figure is sourced.</p>
       <div class="hero-facts">
         <div class="f"><span class="fl">Median age</span><span class="fv tnum" id="hfAge">—</span></div>
         <div class="f"><span class="fl">Foreign-born</span><span class="fv tnum" id="hfFb">—</span></div>
@@ -343,14 +343,14 @@ section.sec{padding:0; border-bottom:1px solid var(--ink)}
     <div class="cols">
       <div class="col">
         <h3>Source</h3>
-        <p>Except for the timeline, every figure is a <b>U.S. Census Bureau American Community Survey 2020–2024 five-year estimate</b>, pulled directly from the Census API. Five-year estimates are the most reliable for small subgroups — specific countries of birth, languages, and the like.</p>
+        <p>Except for the timeline, every figure is a <b>U.S. Census Bureau American Community Survey 2020–2024 five-year estimate</b>, pulled directly from the Census API. Five-year estimates are the most reliable for small subgroups — specific countries of birth, languages and the like.</p>
         <p>Citywide totals use the Census "place" geography (New York city, place&nbsp;51000); boroughs use the five county equivalents. Medians come from the citywide place — medians can't be summed across boroughs.</p>
       </div>
       <div class="col">
         <h3>Timeline</h3>
         <p>Fig. 01 uses <b>decennial census counts, 1790–2020</b>, for the modern five-borough area (U.S. Census Bureau; NYC Dept. of City Planning). The 1890→1900 jump is the 1898 consolidation of Greater New York, not real growth.</p>
         <h3 style="margin-top:16px">Universes</h3>
-        <p>Denominators vary by table and are stated on each figure: total population, population 25+ (education), 16+ (work), 15+ (marital status), households, or housing units.</p>
+        <p>Denominators vary by table and are stated on each figure: total population, population 25+ (education), 16+ (work), 15+ (marital status), households or housing units.</p>
       </div>
       <div class="col">
         <h3>Caveats</h3>
@@ -789,7 +789,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {label:"Deaths",value:-d.extras.pep.cumulative.deaths},
         {label:"Net domestic migration",value:d.extras.pep.cumulative.domestic}])},
     {topic:"By borough",title:"Five cities in one",
-      dek:`Brooklyn holds the most people; Manhattan packs them tightest; Queens sprawls widest. Population, density and median household income, per borough.`,
+      dek:`Brooklyn has the most people, Manhattan the highest density and Queens the most land. Population, density and median household income, per borough.`,
       note:`Density is people per square mile of land area. Manhattan's ~${fmt(d.boroughs.find(b=>b.name==="Manhattan").density)}/mi² is roughly ${(d.boroughs.find(b=>b.name==="Manhattan").density/d.boroughs.find(b=>b.name==="Staten Island").density).toFixed(0)}× Staten Island's.`,
       build:()=>boroughTable(d.boroughs)},
     {topic:"The map",title:"Where they live",
@@ -797,7 +797,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Neighborhood Tabulation Areas (2020), shaded by American Community Survey 2020–2024 estimates. Colors use six equal-count (quantile) bins, so each shade holds a similar number of neighborhoods; small differences between adjacent shades are within the survey's margin of error. The <b>Growth 10–20</b> layer is different: decennial census counts on 2020 boundaries (NYC Dept. of City Planning crosswalk), red for loss and blue for gain; neighborhoods under 1,000 residents in 2010 are left grey because tiny bases make percentages meaningless.`,
       build:()=>choroplethMap()},
     {topic:"Day & night",title:"The city by day",
-      dek:`The census counts people where they sleep — but every weekday the city redistributes itself. Manhattan swells <span class="rn">${d.daytime.boroughs[0].changePct>0?"+":""}${d.daytime.boroughs[0].changePct}%</span> with commuters while every other borough empties out, and the city as a whole holds about <span class="rn">${fmt(d.daytime.cityDay)}</span> people by day.`,
+      dek:`The census counts people where they sleep. On weekdays Manhattan swells <span class="rn">${d.daytime.boroughs[0].changePct>0?"+":""}${d.daytime.boroughs[0].changePct}%</span> with commuters while every other borough empties out, and the city as a whole holds about <span class="rn">${fmt(d.daytime.cityDay)}</span> people by day.`,
       note:`Commuter-adjusted daytime population: residents + workers working in the borough (ACS table B08604, workplace geography) − workers living in the borough (B08301). A standard Census Bureau formula; it counts commuters but not tourists, students or hospital patients, so the true daytime peak runs higher.`,
       build:()=>pairedBars(d.daytime.boroughs)},
     {topic:"Age & sex",title:"The shape of a generation",
@@ -821,12 +821,12 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       dek:`More than a third of New Yorkers — <span class="rn">${d.nativity.foreignBornPct}%</span> — were born outside the United States, among the highest shares of any large American city.`,
       note:`Universe: total population. "Native" includes people born in the U.S., Puerto Rico and territories, and those born abroad to American parents.`,
       build:()=>splitBar([{label:"Foreign-born",value:d.nativity.foreignBorn},{label:"Native-born",value:d.nativity.native}])},
-    {topic:"Citizenship",title:"The paths to belonging",
-      dek:`How New Yorkers relate to citizenship — born citizens, naturalized citizens, and non-citizens.`,
+    {topic:"Citizenship",title:"Citizens and non-citizens",
+      dek:`How New Yorkers relate to citizenship — born citizens, naturalized citizens and non-citizens.`,
       note:`Universe: total population. One bar, five statuses, summing to the whole city.`,
       build:()=>stackedBar(d.citizenship,{total:T.population})},
     {topic:"Legal status",title:"How many are undocumented",
-      dek:`The census never asks. But modeled estimates put the number of undocumented New Yorkers at roughly <span class="rn">${fmt(d.undocumented.nycEstimate)}</span> as of ${d.undocumented.nycYear} — down sharply from about ${fmt(d.undocumented.nyc2012)} a decade earlier.`,
+      dek:`The census does not ask about legal status. Modeled estimates put the number of undocumented New Yorkers at roughly <span class="rn">${fmt(d.undocumented.nycEstimate)}</span> as of ${d.undocumented.nycYear} — down sharply from about ${fmt(d.undocumented.nyc2012)} a decade earlier.`,
       note:`${d.undocumented.note} Primary source: NYC Mayor's Office of Immigrant Affairs (ACS-based modeling). Estimates vary widely by method and year; figures above 600,000 generally describe New York State, not the city (Migration Policy Institute).`,
       build:()=>statTiles([
         {value:fmt(d.undocumented.nycEstimate),label:`estimated <b>undocumented</b> residents (${d.undocumented.nycYear}) — modeled, <b>not</b> a census count`},
@@ -844,7 +844,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         return wrap;
       }},
     {topic:"A century of arrivals",title:"Where New York came from",
-      dek:`The same question, run across time. Foreign-born New Yorkers by country of birth, <span class="rn">1900 to 2023</span> — press play and watch the great European waves crest and recede as Latin America, the Caribbean and Asia rise.`,
+      dek:`Foreign-born New Yorkers by country of birth, <span class="rn">1900 to 2023</span>. Press play to see the European waves crest and recede as Latin America, the Caribbean and Asia rise.`,
       note:`${d.immigrationTimeline.note}<br><br><b>The fade:</b> once a wave stops being replenished, its bar dims — a visual proxy for immigrants aging into US-born children and grandchildren the census can no longer count by country of birth. It is a device, not a measured generation count.`,
       build:()=>horserace(d.immigrationTimeline)},
     {topic:"Ancestry",title:"Where families trace back",
@@ -860,7 +860,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: households. Each square is 1% of the city's ${fmt(T.households)} households. Average household size is ${T.avgHHSize}.`,
       build:()=>waffle(d.household,{total:T.households,caption:"100 squares = 100% of households"})},
     {topic:"Marital status",title:"Married, single, in between",
-      dek:`Marital status of everyone 15 and older. "Never married" is the single largest category — a young, churning city.`,
+      dek:`Marital status of everyone 15 and older. "Never married" is the largest category.`,
       note:`Universe: population 15 and older. Male and female counts combined.`,
       build:()=>barChart(d.marital,{total:d.marital.reduce((a,b)=>a+b.value,0)})},
     {topic:"Couples",title:"Married, partnered, same-sex",
@@ -884,7 +884,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Types from the ${d.extras.gq.source} (a full count); the current total is the ACS 2020–2024 estimate (table B26001). "Other group housing" is the census's noninstitutional catch-all and includes group homes and shelters.`,
       build:()=>barChart(d.extras.gq.types,{total:d.extras.gq.total2020})},
     {topic:"Births & caregiving",title:"New arrivals, and who raises them",
-      dek:`In a single year, some <span class="rn">${fmt(d.family.births)}</span> New York women gave birth — and tens of thousands of grandparents are the ones raising the city's children.`,
+      dek:`In a single year, some <span class="rn">${fmt(d.family.births)}</span> New York women gave birth — and tens of thousands of grandparents are raising their grandchildren.`,
       note:`Universe: women 15–50 (ACS table B13002) and grandparents living with their own grandchildren under 18 (B10051). "Responsible" grandparents are those who report being responsible for most of the grandchild's basic needs.`,
       build:()=>statTiles([
         {value:d.family.birthRatePer1000,label:`<b>births per 1,000 women</b> aged 15–50 in the past year (${fmt(d.family.births)} births)`},
@@ -928,15 +928,15 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: workers 16 and older. "Worked from home" reflects the 2020–2024 average.`,
       build:()=>barChart(d.commute,{total:d.commute.reduce((a,b)=>a+b.value,0)})},
     {topic:"Travel time",title:"Minutes each way",
-      dek:`How long the commute actually takes — one-way travel time to work, in minutes.`,
+      dek:`How long the commute takes — one-way travel time to work, in minutes.`,
       note:`Universe: workers 16+ who did not work from home.`,
       build:()=>columnChart(d.travelTime,{total:d.travelTime.reduce((a,b)=>a+b.value,0)})},
     {topic:"Departure time",title:"The rush hour, hour by hour",
-      dek:`When the city actually leaves for work. The classic 7–9 a.m. rush is there — but so is the other city: <span class="rn">${fmt(d.earlyShift)}</span> workers out the door before 6 a.m.`,
+      dek:`When the city leaves for work. The 7–9 a.m. rush is there, and so are <span class="rn">${fmt(d.earlyShift)}</span> workers out the door before 6 a.m.`,
       note:`Universe: workers 16+ who did not work from home (ACS table B08302). Time of departure from home.`,
       build:()=>columnChart(d.departure,{total:d.departure.reduce((a,b)=>a+b.value,0)})},
     {topic:"Work",title:"In the labor force",
-      dek:`Employment status for New Yorkers 16 and older — the working, the looking, and those out of the labor force.`,
+      dek:`Employment status for New Yorkers 16 and older — the working, the looking and those out of the labor force.`,
       note:`ACS universe: population 16+. The ACS 2020–2024 five-year <b>average</b> unemployment rate was ${d.employment.unemploymentRate}%, run high by a window that spans the pandemic; the current rate is from ${d.blsLabor?d.blsLabor.source:"the U.S. Bureau of Labor Statistics"}.`,
       build:()=>statTiles([
         {value:fmt(d.employment.employed),label:`<b>employed</b> residents 16+ (ACS)`},
@@ -949,7 +949,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: employed civilians 16 and older (${fmt(d.employment.employed)}). Each square is 1% of workers.`,
       build:()=>waffle(d.occupation,{total:d.occupation.reduce((a,b)=>a+b.value,0),caption:"100 squares = 100% of employed New Yorkers"})},
     {topic:"Industry",title:"The sectors they work in",
-      dek:`Where those jobs sit. New York's economy leans hard on education and health care — together the single largest employer of the city's own residents, ahead of finance.`,
+      dek:`Where those jobs sit. Education and health care together employ more of the city's own residents than any other sector, including finance.`,
       note:`Universe: employed civilians 16 and older, by industry of their job.`,
       build:()=>barChart(d.industry,{total:d.industry.reduce((a,b)=>a+b.value,0)})},
     {topic:"Who they work for",title:"Company, government, or themselves",
@@ -975,7 +975,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: all households (ACS table B22010).`,
       build:()=>splitBar([{label:"Received SNAP",value:d.snap.count},{label:"Did not",value:T.households-d.snap.count}])},
     {topic:"Housing tenure",title:"Renters' city",
-      dek:`Roughly two in three occupied homes are rented — New York is, overwhelmingly, a city of renters.`,
+      dek:`Roughly two in three occupied homes are rented.`,
       note:`Universe: occupied housing units. Median gross rent $${fmt(T.medianGrossRent)}; median home value $${fmt(T.medianHomeValue)}.`,
       build:()=>splitBar([{label:"Renter-occupied",value:d.tenure.find(t=>/Renter/.test(t.label)).value},{label:"Owner-occupied",value:d.tenure.find(t=>/Owner/.test(t.label)).value}])},
     {topic:"Type of home",title:"What they live in",
@@ -983,7 +983,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
       note:`Universe: all housing units.`,
       build:()=>columnChart(d.unitsInStructure,{total:d.unitsInStructure.reduce((a,b)=>a+b.value,0)})},
     {topic:"Building age",title:"A pre-war city",
-      dek:`When New York's homes were built. <span class="rn">${d.prewarPct}%</span> of all housing units predate 1940 — the fabled "pre-war" stock — and no later decade comes close to that pre-1940 wave.`,
+      dek:`When New York's homes were built. <span class="rn">${d.prewarPct}%</span> of all housing units predate 1940 — the "pre-war" stock — and no later decade comes close to that pre-1940 wave.`,
       note:`Universe: all housing units (ACS table B25034, year structure built).`,
       build:()=>columnChart(d.buildingAge.slice().reverse(),{total:d.buildingAge.reduce((a,b)=>a+b.value,0)})},
     {topic:"Crowding",title:"Room to spare, or none",
@@ -994,7 +994,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         {value:d.crowding.severeRate,unit:"%",label:`are <b>severely crowded</b> — over 1.5 per room (${fmt(d.crowding.severeCount)})`},
         {value:T.avgHHSize,label:`average household size, citywide`}])},
     {topic:"Rent burden",title:"What rent eats",
-      dek:`For renters, the share of income that disappears into housing. A majority are <span class="rn">rent-burdened</span> — paying at least 30% of household income in rent.`,
+      dek:`For renters, the share of income that goes to rent. A majority are <span class="rn">rent-burdened</span> — paying at least 30% of household income in rent.`,
       note:`Universe: renter-occupied units paying cash rent (ACS table B25070). "Severely burdened" means paying 50% or more of income on rent. The burden is heaviest in the Bronx and lightest in Manhattan — where higher incomes offset higher rents.`,
       build:()=>{
         const wrap=document.createElement("div");
@@ -1007,8 +1007,8 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         wrap.append(cap, barChart(d.rentBurden.byBorough,{total:100,showCount:false}));
         return wrap;
       }},
-    {topic:"Cars",title:"Who actually has a car",
-      dek:`New York is called a city without cars — and by <b>households</b> it is: <span class="rn">${d.carFree.rate}%</span> own no vehicle. But car-owning homes are larger, so a slim majority of <b>people</b> — <span class="rn">${d.carFree.hunter.peopleWithVehiclePct}%</span> — actually live in a household with a car. Which measure you use flips the story.`,
+    {topic:"Cars",title:"Who has a car",
+      dek:`New York is called a city without cars — and by <b>households</b> it is: <span class="rn">${d.carFree.rate}%</span> own no vehicle. But car-owning homes are larger, so a slim majority of <b>people</b> — <span class="rn">${d.carFree.hunter.peopleWithVehiclePct}%</span> — actually live in a household with a car.`,
       note:`Household figures and the borough breakdown: ACS 2020–2024, table B25044 (occupied units). The person-level share, vehicles per household and the ~2 million-vehicle citywide total come from ${d.carFree.hunter.source}, which analyzed ACS ${d.carFree.hunter.dataYears} data; its borough ownership rates match this atlas's ACS tabulation within a point.`,
       build:()=>{
         const h=d.carFree.hunter, wrap=document.createElement("div");
@@ -1042,18 +1042,18 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         wrap.append(a,b); return wrap;
       }},
     {topic:"Digital access",title:"Online, or not",
-      dek:`Most New Yorkers are connected — but a digital divide persists: hundreds of thousands of households have no internet subscription at home.`,
+      dek:`Most New Yorkers have internet at home, but hundreds of thousands of households have no internet subscription.`,
       note:`Universe: households (ACS tables B28002, B28003). "Broadband" is a broadband subscription of any type; "no internet" means no subscription of any kind.`,
       build:()=>statTiles([
         {value:d.digital.broadbandPct,unit:"%",label:`of households have a <b>broadband</b> subscription`},
         {value:d.digital.noInternetPct,unit:"%",label:`have <b>no internet</b> subscription at home — ${fmt(d.digital.noInternetCount)} households`},
         {value:d.digital.noComputerPct,unit:"%",label:`have <b>no computer</b> at all`}])},
     {topic:"Health coverage",title:"How they're insured",
-      dek:`How New Yorkers get their health coverage — from employers, from public programs like Medicaid and Medicare, or not at all.`,
+      dek:`How New Yorkers get their health coverage — from employers, from public programs like Medicaid and Medicare or not at all.`,
       note:`Universe: total civilian noninstitutionalized population (ACS table B27010). "(only)" means a single type of coverage; people with more than one are grouped in "two or more types," so these categories sum to the whole population.`,
       build:()=>stackedBar(d.coverage,{total:d.coverageTotal})},
     {topic:"Longevity",title:"How long a life",
-      dek:`A New Yorker born in 2023 can expect <span class="rn">${d.extras.life.citywide2023}</span> years — but geography bends that number by more than fifteen: from ${d.extras.life.highestCD[0].value} in ${d.extras.life.highestCD[0].label} to ${d.extras.life.lowestCD[0].value} in ${d.extras.life.lowestCD[0].label}.`,
+      dek:`A New Yorker born in 2023 can expect <span class="rn">${d.extras.life.citywide2023}</span> years, but by community district the figure varies by more than fifteen years: from ${d.extras.life.highestCD[0].value} in ${d.extras.life.highestCD[0].label} to ${d.extras.life.lowestCD[0].value} in ${d.extras.life.lowestCD[0].label}.`,
       note:`${d.extras.life.source}. Citywide life expectancy at birth, 2023; community-district figures are ${d.extras.life.cdPeriod} averages (based on NYC resident deaths, including those occurring outside the city). The five highest and five lowest of the 59 community districts.`,
       build:()=>{
         const wrap=document.createElement("div");
@@ -1070,7 +1070,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
         grid.append(a,b); wrap.appendChild(grid); return wrap;
       }},
     {topic:"Three more cuts",title:"Veterans, disability, coverage",
-      dek:`Three final ways to slice the same eight million — military service, disability, and health-insurance coverage.`,
+      dek:`Three final ways to slice the same eight million — military service, disability and health-insurance coverage.`,
       note:`Veterans: civilian population 18+. Disability and coverage: total civilian noninstitutionalized population.`,
       build:()=>statTiles([
         {value:d.veterans.rate,unit:"%",label:`are <b>military veterans</b> — ${fmt(d.veterans.count)} people`},

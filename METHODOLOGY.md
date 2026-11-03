@@ -26,7 +26,7 @@ table. Nothing is estimated or invented by hand.
 
 Five-year ACS estimates are used (rather than 1-year) because they are the most
 reliable for small subgroups — specific countries of birth, languages spoken at
-home, ancestry, and so on.
+home, ancestry and so on.
 
 ## Geography
 
